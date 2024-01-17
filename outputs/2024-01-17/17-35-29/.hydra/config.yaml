@@ -1,8 +1,0 @@
-syms:
-  hidden_dim: 256
-  act:
-    _target_: groups.GSpaceWrapper
-    group_act: c2c2c2
-model:
-  _target_: models.InvariantDragMLP
-  act: ${syms.act}

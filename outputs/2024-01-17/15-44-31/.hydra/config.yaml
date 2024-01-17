@@ -1,7 +1,0 @@
-syms:
-  optimizer:
-    _target_: models.Optimizer
-    algo: SGD
-    lr: 0.01
-someglob:
-- hello: as

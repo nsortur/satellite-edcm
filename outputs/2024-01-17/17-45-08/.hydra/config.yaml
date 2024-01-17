@@ -1,0 +1,9 @@
+model:
+  _target_: models.InvariantDragMLP
+  gspaceinfo: ${syms.act}
+  hidden_dim: ${hidden_dim}
+syms:
+  hidden_dim: 256
+  act:
+    _target_: groups.GSpaceInfo
+    group_act: c2c2c2

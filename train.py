@@ -2,7 +2,7 @@ import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 import torch
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
 import os
 
 def split_numsamples(dataset: torch.utils.data.Dataset, numtrain: int, numtest: int):
@@ -58,7 +58,7 @@ def train(cfg: DictConfig):
                         inputs, labels = data
                         output = model(inputs)
 
-                return mean_squared_error(labels.cpu().numpy(), output.cpu().numpy().squeeze(), squared=True)
+                return root_mean_squared_error(labels.cpu().numpy(), output.cpu().numpy().squeeze())
             
         rmse = do_eval()
         running_loss_sample = running_loss / len(train_loader_yp)

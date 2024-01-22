@@ -2,10 +2,13 @@ import pandas as pd
 import math
 import torch
 import numpy as np
+import os
+from hydra import utils
 
 class DragDataset(torch.utils.data.Dataset):
-    def __init__(self, file_name, norm_features, num_train, num_test, DEVICE='cpu'):
-        df = pd.read_csv(file_name, delim_whitespace=True, header=None)
+    def __init__(self, file_name, norm_features, DEVICE='cpu'):
+        
+        df = pd.read_csv(utils.to_absolute_path(file_name), delim_whitespace=True, header=None)
         df = df[:-1]
         
         in_vars = df.iloc[:, :5].to_numpy()

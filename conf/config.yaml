@@ -1,25 +1,24 @@
 defaults:
   - _self_
   - syms: c2c2c2
+  - stl_data: grace
+
+dataset:
+  _target_: datasets.DragDataset
+  file_name: ${stl_data.file_name}
+  norm_features: ${stl_data.norm_features}
 
 model:
   _target_: models.InvariantDragMLP
   gspaceinfo: ${syms.act}
   hidden_dim: ${syms.hidden_dim}
 
-dataset:
-  _target_: datasets.DragDataset
-  file_name: data/grace-512.dat
-  norm_features: true
-  num_train: 400
-  num_test: 100
 
 batch_size: 32
 n_epochs: 24
 lr: 0.001
 verbose: true
 
-viz:
-  save_viz: false
-  viz_name: c2c2c2_grace
-  viz_epoch_modulus: 25
+weights:
+  save_weights: true
+  save_epoch_modulus: 50

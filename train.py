@@ -3,30 +3,31 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 import torch
 from sklearn.metrics import mean_squared_error
+import os
 
 def split_numsamples(dataset: torch.utils.data.Dataset, numtrain: int, numtest: int):
     total_samps = len(dataset) + 1
     train_prop = numtrain / total_samps
+    print(f'Train proportion: {train_prop}')
     train_s, test_s = torch.utils.data.random_split(dataset, [train_prop, 1-train_prop])
 
     test_prop = numtest / (total_samps*(1-train_prop))
-    print(f'Train proportion: {train_prop}')
     print(f'Test proportion: {test_prop}')
-
     # chuck the unused samples away
     test_s, _ = torch.utils.data.random_split(test_s, [test_prop, 1-test_prop])
     return train_s, test_s
 
 
-@hydra.main(version_base=None, config_path='conf', config_name='config')
+@hydra.main(config_path='conf', config_name='config')
 def train(cfg: DictConfig):
     device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
     print(OmegaConf.to_yaml(cfg))
     print(f'Using device {device}')
+    print("Working directory : {}".format(os.getcwd()))
 
     model = instantiate(cfg.model).to(device)
     dataset = instantiate(cfg.dataset, DEVICE=device)
-    train_set, test_set = split_numsamples(dataset, cfg.dataset.num_train, cfg.dataset.num_test)
+    train_set, test_set = split_numsamples(dataset, cfg.stl_data.num_train, cfg.stl_data.num_test)
 
     train_loader_yp = torch.utils.data.DataLoader(train_set, batch_size=cfg.batch_size, shuffle=True)
     test_loader_yp_ = torch.utils.data.DataLoader(test_set, batch_size=len(test_set), shuffle=True)
@@ -68,12 +69,15 @@ def train(cfg: DictConfig):
         losses.append(running_loss_sample)
         test_losses.append(rmse_sample)
         
-        if cfg.viz.save_viz:
-            if cfg.viz.viz_name == None:
-                raise ValueError("Must have viz name if save_viz is true")
+        if cfg.weights.save_weights:
+            if not os.path.exists("weights"):
+                os.makedirs("weights")
             
-            if j % cfg.viz.viz_epoch_modulus == 0:
-                torch.save(model.state_dict(), f'train_prog_viz/{cfg.ciz.viz_name}_model_epoch_{j}.pt')
+            # hydra saves weights in output folder (is cwd)
+            if j % cfg.weights.save_epoch_modulus == 0:
+                save_loc = f'weights/model_epoch_{j}.pt'
+                print("Saving weights at:", save_loc)
+                torch.save(model.state_dict(), save_loc)
 
 
 if __name__ == "__main__":

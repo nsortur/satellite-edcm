@@ -2,7 +2,8 @@ import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 import torch
-from sklearn.metrics import root_mean_squared_error
+from sklearn.metrics import mean_squared_error
+from math import sqrt
 import os
 
 def split_numsamples(dataset: torch.utils.data.Dataset, numtrain: int, numtest: int):
@@ -58,7 +59,7 @@ def train(cfg: DictConfig):
                         inputs, labels = data
                         output = model(inputs)
 
-                return root_mean_squared_error(labels.cpu().numpy(), output.cpu().numpy().squeeze())
+                return sqrt(mean_squared_error(labels.cpu().numpy(), output.cpu().numpy().squeeze()))
             
         rmse = do_eval()
         running_loss_sample = running_loss / len(train_loader_yp)
@@ -74,7 +75,7 @@ def train(cfg: DictConfig):
                 os.makedirs("weights")
             
             # hydra saves weights in output folder (is cwd)
-            if j % cfg.weights.save_epoch_modulus == 0:
+            if (j+1) % cfg.weights.save_epoch_modulus == 0:
                 save_loc = f'weights/model_epoch_{j}.pt'
                 print("Saving weights at:", save_loc)
                 torch.save(model.state_dict(), save_loc)

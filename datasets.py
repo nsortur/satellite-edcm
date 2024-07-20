@@ -14,7 +14,7 @@ class DragDataset(torch.utils.data.Dataset):
         in_vars = df.iloc[:, :5].to_numpy()
         # minmax normalization of non-orientation features
         if norm_features:
-            in_vars = (in_vars-in_vars.min()) / (in_vars.max() - in_vars.min())
+            in_vars = (in_vars-in_vars.min(axis=0)) / (in_vars.max(axis=0) - in_vars.min(axis=0))
         
         orientation = df.iloc[:, 5:7].values
         y = df.iloc[:, 7].values
@@ -36,3 +36,12 @@ class DragDataset(torch.utils.data.Dataset):
     
     def __getitem__(self, idx):
         return self.x[idx], self.y[idx]
+    
+if __name__ == "__main__":
+    df = pd.read_csv(utils.to_absolute_path("data/cube50k.dat"), delim_whitespace=True, header=None)
+    df = df[:-1]
+        
+    in_vars = df.iloc[:, :5].to_numpy()
+    # minmax normalization of non-orientation features
+    # apply to each column separately
+    in_vars = (in_vars-in_vars.min(axis=0)) / (in_vars.max(axis=0) - in_vars.min(axis=0))

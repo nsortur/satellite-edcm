@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - syms: c2c2c2
-  - stl_data: grace
+  - stl_data: cube
 
 dataset:
   _target_: datasets.DragDataset

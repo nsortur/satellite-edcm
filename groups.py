@@ -17,7 +17,7 @@ class GSpaceInfo():
             self.group = gspaces.no_base_space(escnn.group.cyclic_group(2))
             self.input_reps = 1*[self.group.trivial_repr] + 1*[self.group.irrep(1)] + 1*[self.group.trivial_repr]
         elif group_act == 'trivial':
-            self.group = gspaces.trivialOnR3()
+            self.group = gspaces.no_base_space(escnn.group.cyclic_group(1))
             self.input_reps = 3*[self.group.trivial_repr]
         elif group_act == 'c4':
             self.group = escnn.group.cyclic_group(4)

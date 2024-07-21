@@ -1,0 +1,6 @@
+defaults:
+  - base_model
+
+act: 
+  _target_: groups.GSpaceInfo
+  group_act: trivial

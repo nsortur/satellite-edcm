@@ -1,17 +1,10 @@
 defaults: 
   - syms: c2c2c2
   - stl_data: cube
+  - model_data: invariant
 
-dataset:
-  _target_: datasets.DragDataset
-  file_name: ${stl_data.file_name}
-  norm_features: ${stl_data.norm_features}
-
-model:
-  _target_: models.InvariantDragMLP
-  gspaceinfo: ${syms.act}
-  hidden_dim: ${syms.hidden_dim}
-
+# dataset: ${model_data.dataset}
+# model: ${model_data.model}
 
 batch_size: 32
 n_epochs: 100

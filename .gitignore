@@ -1,5 +1,6 @@
 data/
 outputs/
 .DS_Store
+multirun/
 
 __pycache__/

@@ -5,6 +5,7 @@ import torch
 from sklearn.metrics import mean_squared_error
 from math import sqrt
 import os
+from torch_geometric.data import DataLoader
 
 def split_numsamples(dataset: torch.utils.data.Dataset, numtrain: int, numtest: int):
     total_samps = len(dataset) + 1
@@ -26,12 +27,14 @@ def train(cfg: DictConfig):
     print(f'Using device {device}')
     print("Working directory : {}".format(os.getcwd()))
 
-    model = instantiate(cfg.model).to(device)
-    dataset = instantiate(cfg.dataset, DEVICE=device)
+    model = instantiate(cfg.model_data.model).to(device)
+    dataset = instantiate(cfg.model_data.dataset, DEVICE=device)
     train_set, test_set = split_numsamples(dataset, cfg.stl_data.num_train, cfg.stl_data.num_test)
 
-    train_loader_yp = torch.utils.data.DataLoader(train_set, batch_size=cfg.batch_size, shuffle=True)
-    test_loader_yp_ = torch.utils.data.DataLoader(test_set, batch_size=len(test_set), shuffle=True)
+    # loader = instantiate(cfg.model_data.loader)
+    loader = DataLoader
+    train_loader_yp = loader(train_set, batch_size=cfg.batch_size, shuffle=True)
+    test_loader_yp_ = loader(test_set, batch_size=len(test_set), shuffle=True)
 
     loss_fn = torch.nn.MSELoss()
     optim = torch.optim.Adam(model.parameters(), lr=cfg.lr)

@@ -1,4 +1,5 @@
 file_name: data/cube50k.dat
+mesh_file: /Users/neelsortur/Documents/codestuff/sat-modeling/satellite-edcm/STLs/Cube_38_1m.stl
 norm_features: true
 num_train: 40000
 num_test: 9999

@@ -4,6 +4,9 @@ import torch
 import numpy as np
 import os
 from hydra import utils
+import trimesh
+from torch_geometric.data import Data
+from e3nn import o3
 
 class DragDataset(torch.utils.data.Dataset):
     def __init__(self, file_name, norm_features, DEVICE='cpu'):
@@ -37,11 +40,63 @@ class DragDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         return self.x[idx], self.y[idx]
     
-if __name__ == "__main__":
-    df = pd.read_csv(utils.to_absolute_path("data/cube50k.dat"), delim_whitespace=True, header=None)
-    df = df[:-1]
+
+# we are just overfitting to one mesh for now because of lack of mesh variety (but still equivariant)
+class DragMeshDataset(torch.utils.data.Dataset):
+    def __init__(self, attr_file, mesh_file, norm_features=True, DEVICE='cpu'):
+        super().__init__()
+        self.device = DEVICE
+        mesh = trimesh.load(mesh_file, file_type="stl", force="mesh")
+        self.vertices_canonical = torch.tensor(mesh.vertices, dtype=torch.get_default_dtype()).to(DEVICE)
+        self.edges = torch.tensor(mesh.edges_unique).to(DEVICE)
+
+        df = pd.read_csv(utils.to_absolute_path(attr_file), delim_whitespace=True, header=None)
+        df = df[:-1]
+        attrs = df.iloc[:, :5].to_numpy()
+        if norm_features:
+            attrs = (attrs-attrs.min(axis=0)) / (attrs.max(axis=0) - attrs.min(axis=0))
+        self.attrs = torch.tensor(attrs, dtype=torch.float32).to(DEVICE)
         
-    in_vars = df.iloc[:, :5].to_numpy()
-    # minmax normalization of non-orientation features
-    # apply to each column separately
-    in_vars = (in_vars-in_vars.min(axis=0)) / (in_vars.max(axis=0) - in_vars.min(axis=0))
+        # needs to be CPU for D_from_angles
+        self.orientation = torch.tensor(df.iloc[:, 5:7].values, dtype=torch.float32).cpu()
+        self.y = torch.tensor(df.iloc[:, 7].values, dtype=torch.float32).to(DEVICE)
+
+        # self.rot_irrep = o3.Irrep("1e").D_from
+    
+    def __len__(self):
+        return len(self.y)
+
+    def __getitem__(self, idx):
+        orientation_i = self.orientation[idx]
+        
+        vertices_rot = self.vertices_canonical @ o3.Irrep("1e").D_from_angles(orientation_i[0], orientation_i[1], torch.tensor(0)).to(self.device)
+
+        return Data(
+            pos=vertices_rot,
+            x=torch.ones(len(vertices_rot), 1),
+            edge_index=self.edges.T,
+            node_attr=self.attrs[idx],
+            edge_attr=torch.ones(self.edges.size(0), 1),
+        ), self.y[idx]
+
+    def _rotate(self, data, orientation):
+        vertices = data.pos
+        vertices_rot = vertices @ o3.Irrep("1e").D_from_angles(orientation[0], orientation[1], torch.tensor(0))
+        data_rot = data.clone()
+        data_rot.pos = vertices_rot
+        return data_rot
+    
+# if __name__ == "__main__":
+#     df = pd.read_csv(utils.to_absolute_path("data/cube50k.dat"), delim_whitespace=True, header=None)
+#     df = df[:-1]
+        
+#     in_vars = df.iloc[:, :5].to_numpy()
+#     # minmax normalization of non-orientation features
+#     # apply to each column separately
+#     in_vars = (in_vars-in_vars.min(axis=0)) / (in_vars.max(axis=0) - in_vars.min(axis=0))
+
+
+if __name__ == "__main__":
+    
+    ds = DragMeshDataset("data/cube50k.dat", "STLs/Cube_38_1m.stl")
+    print(ds[2])

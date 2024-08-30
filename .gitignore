@@ -1,6 +1,7 @@
 data/
 outputs/
 .DS_Store
+multirun/
 STLs
 
 __pycache__/

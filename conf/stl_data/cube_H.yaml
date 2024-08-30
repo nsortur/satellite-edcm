@@ -1,0 +1,4 @@
+file_name: "/home/sortur.n/rsm_tool_suite-master/Outputs/RSM_Regression_Models/data/Training Set/cube0_ascii.stl_H_training_set.dat"
+norm_features: true
+num_train: 40000
+num_test: 9999

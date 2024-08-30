@@ -55,7 +55,7 @@ class DragMeshDataset(torch.utils.data.Dataset):
         attrs = df.iloc[:, :5].to_numpy()
         if norm_features:
             attrs = (attrs-attrs.min(axis=0)) / (attrs.max(axis=0) - attrs.min(axis=0))
-        self.attrs = torch.tensor(attrs, dtype=torch.float32).to(DEVICE)
+        self.xs = torch.tensor(attrs, dtype=torch.float32).to(DEVICE)
         
         # needs to be CPU for D_from_angles
         self.orientation = torch.tensor(df.iloc[:, 5:7].values, dtype=torch.float32).cpu()
@@ -73,9 +73,8 @@ class DragMeshDataset(torch.utils.data.Dataset):
 
         return Data(
             pos=vertices_rot,
-            x=torch.ones(len(vertices_rot), 1),
+            x=self.xs[idx].repeat(vertices_rot.size(0), 1),
             edge_index=self.edges.T,
-            node_attr=self.attrs[idx],
             edge_attr=torch.ones(self.edges.size(0), 1),
         ), self.y[idx]
 

@@ -9,15 +9,17 @@ from groups import GSpaceInfo
 from e3nn import o3
 from e3nn.math import soft_one_hot_linspace
 from torch_cluster import radius_graph
-from torch_scatter import scatter
+from torch_scatter import scatter, scatter_mean
 import e3nn.nn as enn
 
 class DragMeshNetwork(nn.Module):
     def __init__(self, irreps_node_output, max_radius=3.2, 
-                 lmax=3, num_basis_radial=10):
+                 lmax=3, num_basis_radial=10, pool_nodes=True, max_num_neighbors=10):
         super().__init__()
         self.num_basis_radial = num_basis_radial
         self.irreps_sh = o3.Irreps.spherical_harmonics(lmax=lmax)
+        self.pool_nodes = pool_nodes
+        self.max_num_neighbors = max_num_neighbors
         # self.layers = nn.ModuleList()
 
         # both scalars
@@ -32,12 +34,12 @@ class DragMeshNetwork(nn.Module):
         self.conv1 = GraphConv(self.irreps_sh, self.irreps_sh, gate.irreps_in, num_basis_radial=num_basis_radial)
         self.gate = gate
         self.conv2 = GraphConv(gate.irreps_out, self.irreps_sh, irreps_node_output, num_basis_radial=num_basis_radial)
-        
+
         self.max_radius = max_radius
     
     def forward(self, data):
         num_nodes = data.x.shape[0]
-        edge_src, edge_dst = radius_graph(data.pos.cpu(), self.max_radius, batch=data.batch)
+        edge_src, edge_dst = radius_graph(data.pos.cpu(), self.max_radius, batch=data.batch.cpu(), max_num_neighbors=self.max_num_neighbors)
         edge_src, edge_dst = edge_src.to(data.pos.device), edge_dst.to(data.pos.device)
 
         num_neighbors = len(edge_src) / num_nodes
@@ -50,6 +52,7 @@ class DragMeshNetwork(nn.Module):
         # self.tp(f_in[edge_src], sh, self.fc(emb)) is initialized to edge_attr (spherical harmonics)
         x = scatter(edge_attr, edge_dst, dim=0, dim_size=num_nodes).div(num_neighbors**0.5)
         x = self.conv1(x, edge_src, edge_dst, edge_attr, edge_length_embedded, num_neighbors)
+ 
         x = self.gate(x)
         x = self.conv2(x, edge_src, edge_dst, edge_attr, edge_length_embedded, num_neighbors)
         

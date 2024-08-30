@@ -5,8 +5,12 @@ dataset:
   norm_features: ${stl_data.norm_features}
 
 model:
-  _target_: models.DragMeshNetwork
-  irreps_node_output: 1x0e
+  _target_: e3nn_examples.SimpleNetwork
+  irreps_in: 5x0e
+  irreps_out: 1x0e
+  max_radius: 2.0
+  num_neighbors: 5.0
+  num_nodes: 5.0
 
 # loader:
 #   _target_: functools.partial

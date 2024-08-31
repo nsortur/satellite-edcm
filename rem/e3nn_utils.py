@@ -12,32 +12,6 @@ from e3nn import o3
 from e3nn.math import soft_one_hot_linspace
 from e3nn.util.jit import compile_mode
 
-@compile_mode("script")
-class GraphPooling(torch.nn.Module):
-  def __init__(self, irreps_in, lmax, num_basis=10, max_radius=5) -> None:
-    super().__init__()
-    self.irreps_in = irreps_in
-    self.lmax = lmax
-    self.num_basis = num_basis
-    self.max_radius = max_radius
-
-  def getEdgeLengths(self, pos, edge_index) -> torch.Tensor:
-    edge_vec = pos[edge_index[0]] - pos[edge_index[1]]
-    return edge_vec
-
-@compile_mode("script")
-class TopKPooling(GraphPooling):
-  def __init__(self, irreps_in, lmax, ratio=0.5, min_score=None, multiplier=1.) -> None:
-    super().__init__(irreps_in, lmax)
-    self.ratio = ratio
-    self.min_score = min_score
-    self.multiplier = multiplier
-
-    self.attn = o3.Linear(irreps_in, o3.Irreps("0e"))
-
-  def forward(self, data) -> torch.Tensor:
-    score = torch.tanh((data.x * self.attn(data.x)).sum(dim=-1) / self.attn.weight.norm(p=2, dim=-1))
-
 def tp_path_exists(irreps_in1, irreps_in2, ir_out):
   irreps_in1 = o3.Irreps(irreps_in1).simplify()
   irreps_in2 = o3.Irreps(irreps_in2).simplify()
@@ -48,7 +22,6 @@ def tp_path_exists(irreps_in1, irreps_in2, ir_out):
       if ir_out in ir1 * ir2:
         return True
   return False
-
 
 def scatter(src: torch.Tensor, index: torch.Tensor, dim_size: int) -> torch.Tensor:
   # special case of torch_scatter.scatter with dim=0
@@ -158,17 +131,15 @@ def flat_wigner(lmax, alpha, beta, gamma):
 
 # Model Blocks
 class SO3Convolution(nn.Module):
-  def __init__(self, f_in, f_out, lmax_in, kernel_grid, lmax_out=None):
+  def __init__(self, f_in, f_out, lmax, kernel_grid):
     super().__init__()
-    if lmax_out == None:
-      lmax_out = lmax_in
     self.register_parameter(
       'w', nn.Parameter(torch.randn(f_in, f_out, kernel_grid.shape[1]))
     ) # [f_in, f_out, n_so3_pts]
     self.register_parameter(
-      'D', nn.Parameter(flat_wigner(lmax_in, *kernel_grid))
+      'D', nn.Parameter(flat_wigner(lmax, *kernel_grid))
     ) # [n_so3_pts, psi]
-    self.lin = o3.Linear(so3_irreps(lmax_in), so3_irreps(lmax_out), f_in=f_in, f_out=f_out, internal_weights=False)
+    self.lin = o3.Linear(so3_irreps(lmax), so3_irreps(lmax), f_in=f_in, f_out=f_out, internal_weights=False)
 
   def forward(self, x):
     # S2 DFT (matrix mulitplication)
@@ -194,9 +165,9 @@ class SO3Convolution(nn.Module):
 #    return self.lin(x, weight=psi)
 
 class SO3ToS2Convolution(nn.Module):
-  def __init__(self, f_in, f_out, lmax_in, lmax_out, kernel_grid):
+  def __init__(self, f_in, f_out, lmax, kernel_grid):
     super().__init__()
-    self.lin = o3.Linear(so3_irreps(lmax_in), s2_irreps(lmax_out), f_in=f_in, f_out=f_out)
+    self.lin = o3.Linear(so3_irreps(lmax), s2_irreps(lmax), f_in=f_in, f_out=f_out)
 
   def forward(self, x):
     return self.lin(x)

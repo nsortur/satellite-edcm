@@ -5,7 +5,8 @@ import torch
 from sklearn.metrics import mean_squared_error
 from math import sqrt
 import os
-from torch_geometric.data import DataLoader
+from torch.utils.data import DataLoader
+from torch_geometric.data import DataLoader as GeometricDataLoader
 
 def split_numsamples(dataset: torch.utils.data.Dataset, numtrain: int, numtest: int):
     total_samps = len(dataset) + 1
@@ -32,8 +33,12 @@ def train(cfg: DictConfig):
     dataset = instantiate(cfg.model_data.dataset, DEVICE=device)
     train_set, test_set = split_numsamples(dataset, cfg.stl_data.num_train, cfg.stl_data.num_test)
 
-    # loader = instantiate(cfg.model_data.loader)
-    loader = DataLoader
+    # workaround for no hydra partial instantiation
+    if model.lmax is not None:
+        loader = GeometricDataLoader
+    else:
+        loader = DataLoader
+    
     train_loader_yp = loader(train_set, batch_size=cfg.batch_size, shuffle=True)
     test_loader_yp_ = loader(test_set, batch_size=len(test_set), shuffle=True)
 

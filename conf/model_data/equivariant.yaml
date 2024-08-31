@@ -5,12 +5,11 @@ dataset:
   norm_features: ${stl_data.norm_features}
 
 model:
-  _target_: e3nn_examples.SimpleNetwork
-  irreps_in: 5x0e
-  irreps_out: 1x0e
-  max_radius: 2.0
-  num_neighbors: 5.0
-  num_nodes: 5.0
+  _target_: rem.REM
+  num_node_features: 5
+  z_lmax: 6
+  max_radius: 5.0
+  out_dim: 1
 
 # loader:
 #   _target_: functools.partial

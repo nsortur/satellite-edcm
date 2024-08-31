@@ -58,24 +58,22 @@ class DragMeshDataset(torch.utils.data.Dataset):
         self.xs = torch.tensor(attrs, dtype=torch.float32).to(DEVICE)
         
         # needs to be CPU for D_from_angles
-        self.orientation = torch.tensor(df.iloc[:, 5:7].values, dtype=torch.float32).cpu()
+        self.orientation = torch.tensor(df.iloc[:, 5:7].values, dtype=torch.float32).to(DEVICE)
         self.y = torch.tensor(df.iloc[:, 7].values, dtype=torch.float32).to(DEVICE)
 
-        # self.rot_irrep = o3.Irrep("1e").D_from
     
     def __len__(self):
         return len(self.y)
 
     def __getitem__(self, idx):
-        orientation_i = self.orientation[idx]
-        
-        vertices_rot = self.vertices_canonical @ o3.Irrep("1e").D_from_angles(orientation_i[0], orientation_i[1], torch.tensor(0)).to(self.device)
-
+        # calculate edge_vec
+        edge_vec = self.vertices_canonical[self.edges[:, 1]] - self.vertices_canonical[self.edges[:, 0]]
         return Data(
-            pos=vertices_rot,
-            x=self.xs[idx].repeat(vertices_rot.size(0), 1),
+            pos=self.vertices_canonical,
+            x=self.xs[idx].repeat(self.vertices_canonical.size(0), 1),
             edge_index=self.edges.T,
-            edge_attr=torch.ones(self.edges.size(0), 1),
+            edge_vec=edge_vec,
+            orientation=self.orientation[idx].unsqueeze(0),
         ), self.y[idx]
 
     def _rotate(self, data, orientation):

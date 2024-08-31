@@ -7,6 +7,7 @@ from math import sqrt
 import os
 from torch.utils.data import DataLoader
 from torch_geometric.data import DataLoader as GeometricDataLoader
+from tqdm import tqdm
 
 def split_numsamples(dataset: torch.utils.data.Dataset, numtrain: int, numtest: int):
     total_samps = len(dataset) + 1
@@ -23,7 +24,7 @@ def split_numsamples(dataset: torch.utils.data.Dataset, numtrain: int, numtest: 
 
 @hydra.main(config_path='conf', config_name='config')
 def train(cfg: DictConfig):
-    device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(OmegaConf.to_yaml(cfg))
     print(f'Using device {device}')
     print("Working directory : {}".format(os.getcwd()))
@@ -47,7 +48,9 @@ def train(cfg: DictConfig):
     test_losses = []
     for j in range(cfg.n_epochs):
         running_loss = 0
-        for i, data in enumerate(train_loader_yp):
+        pbar = tqdm(enumerate(train_loader_yp), total=len(train_loader_yp))
+        pbar.set_description(f"loss: 0")
+        for i, data in pbar:
             inputs, labels = data
             
             optim.zero_grad()
@@ -56,7 +59,7 @@ def train(cfg: DictConfig):
             
             loss = loss_fn(outputs, labels)
             loss.backward()
-            
+            pbar.set_description(f"loss: {format(loss.item(), '.5f')}")
             optim.step()
             running_loss += loss.item()
 

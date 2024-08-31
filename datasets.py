@@ -43,7 +43,7 @@ class DragDataset(torch.utils.data.Dataset):
 
 # we are just overfitting to one mesh for now because of lack of mesh variety (but still equivariant)
 class DragMeshDataset(torch.utils.data.Dataset):
-    def __init__(self, attr_file, mesh_file, norm_features=True, DEVICE='cpu'):
+    def __init__(self, attr_file, mesh_file, norm_features=True, DEVICE='cpu', data_lim=-1):
         super().__init__()
         self.device = DEVICE
         mesh = trimesh.load(mesh_file, file_type="stl", force="mesh")
@@ -52,6 +52,10 @@ class DragMeshDataset(torch.utils.data.Dataset):
 
         df = pd.read_csv(utils.to_absolute_path(attr_file), delim_whitespace=True, header=None)
         df = df[:-1]
+
+        if data_lim is not -1:
+            df = df[:data_lim]
+        
         attrs = df.iloc[:, :5].to_numpy()
         if norm_features:
             attrs = (attrs-attrs.min(axis=0)) / (attrs.max(axis=0) - attrs.min(axis=0))

@@ -23,8 +23,7 @@ def split_numsamples(dataset: torch.utils.data.Dataset, numtrain: int, numtest: 
 
 @hydra.main(config_path='conf', config_name='config')
 def train(cfg: DictConfig):
-    # device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
-    device='cpu'
+    device = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
     print(OmegaConf.to_yaml(cfg))
     print(f'Using device {device}')
     print("Working directory : {}".format(os.getcwd()))

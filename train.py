@@ -40,7 +40,7 @@ def train(cfg: DictConfig):
         loader = DataLoader
     
     train_loader_yp = loader(train_set, batch_size=cfg.batch_size, shuffle=True)
-    test_loader_yp_ = loader(test_set, batch_size=len(test_set), shuffle=True)
+    test_loader_yp_ = loader(test_set, batch_size=cfg.batch_size, shuffle=True)
 
     loss_fn = torch.nn.MSELoss()
     optim = torch.optim.Adam(model.parameters(), lr=cfg.lr)
@@ -64,22 +64,26 @@ def train(cfg: DictConfig):
             running_loss += loss.item()
 
         def do_eval():
+            running_test_loss = 0
             with torch.no_grad():
                 for i, data in enumerate(test_loader_yp_):
+                    inputs, labels = data
+                    output = model(inputs)
 
-                        inputs, labels = data
-                        output = model(inputs)
-
-                return sqrt(mean_squared_error(labels.cpu().numpy(), output.cpu().numpy().squeeze()))
+                    loss = loss_fn(output.squeeze(), labels)
+                    running_test_loss += loss.item()
             
-        rmse = do_eval()
-        running_loss_sample = running_loss / len(train_loader_yp)
-        rmse_sample = rmse
+            return running_test_loss
+                
+            
+        running_test_loss = do_eval()
+        rmse_test = sqrt(running_test_loss / len(test_loader_yp_))
+        running_loss_sample = sqrt(running_loss / len(train_loader_yp))
         if cfg.verbose:
-            print('Epoch {} loss: {}, test RMSE: {}'.format(j + 1, running_loss_sample, rmse_sample))
+            print('Epoch {} loss: {}, test RMSE: {}'.format(j + 1, running_loss_sample, rmse_test))
 
         losses.append(running_loss_sample)
-        test_losses.append(rmse_sample)
+        test_losses.append(rmse_test)
         
         if cfg.weights.save_weights:
             if not os.path.exists("weights"):

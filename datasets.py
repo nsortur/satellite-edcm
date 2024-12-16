@@ -43,12 +43,13 @@ class DragDataset(torch.utils.data.Dataset):
 
 # we are just overfitting to one mesh for now because of lack of mesh variety (but still equivariant)
 class DragMeshDataset(torch.utils.data.Dataset):
-    def __init__(self, attr_file, mesh_file, norm_features=True, DEVICE='cpu', data_lim=-1):
+    def __init__(self, attr_file, mesh_file, norm_features=True, DEVICE='cpu', data_lim=-1, return_features_separately=False):
         super().__init__()
         self.device = DEVICE
         mesh = trimesh.load(mesh_file, file_type="stl", force="mesh")
         self.vertices_canonical = torch.tensor(mesh.vertices, dtype=torch.get_default_dtype()).to(DEVICE)
         self.edges = torch.tensor(mesh.edges_unique).to(DEVICE)
+        self.return_features_separately = return_features_separately
 
         df = pd.read_csv(utils.to_absolute_path(attr_file), delim_whitespace=True, header=None)
         df = df[:-1]
@@ -72,13 +73,23 @@ class DragMeshDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         # calculate edge_vec
         edge_vec = self.vertices_canonical[self.edges[:, 1]] - self.vertices_canonical[self.edges[:, 0]]
-        return Data(
-            pos=self.vertices_canonical,
-            x=self.xs[idx].repeat(self.vertices_canonical.size(0), 1),
-            edge_index=self.edges.T,
-            edge_vec=edge_vec,
-            orientation=self.orientation[idx].unsqueeze(0),
-        ), self.y[idx]
+        if self.return_features_separately:
+            return Data(
+                pos=self.vertices_canonical,
+                x=torch.ones_like(self.xs[idx]).repeat(self.vertices_canonical.size(0), 1),
+                edge_index=self.edges.T,
+                edge_vec=edge_vec,
+                orientation=self.orientation[idx].unsqueeze(0),
+                feats=self.xs[idx]
+            ), self.y[idx]
+        else:
+            return Data(
+                pos=self.vertices_canonical,
+                x=self.xs[idx].repeat(self.vertices_canonical.size(0), 1),
+                edge_index=self.edges.T,
+                edge_vec=edge_vec,
+                orientation=self.orientation[idx].unsqueeze(0),
+            ), self.y[idx]
 
     def _rotate(self, data, orientation):
         vertices = data.pos

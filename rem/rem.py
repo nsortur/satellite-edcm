@@ -107,12 +107,12 @@ class REM(nn.Module):
     z = self.lin(gnn_out.view(batch_size, 1, -1))
     out = self.decoder(z)
     cartesian = self.ar2los(x.orientation)
-    out = self._getResponse(out, cartesian)
+    out_response = self._getResponse(out, cartesian)
 
     if return_latent:
-      return out, z
+      return (out_response, out)
     else:
-      return out
+      return out_response
 
   def _getResponse(self, out, pose):
     if self.invariant_out:

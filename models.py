@@ -137,8 +137,8 @@ class InvariantDragMLP(nn.Module):
         )
     
     def forward(self, x): 
-        dir_vec = x[:, 0:3].reshape((x.shape[0], 3))
-        in_vars = x[:, 3:]
+        dir_vec = x[:, 0:3].reshape((x.shape[0], 3)) # orientation
+        in_vars = x[:, 3:] # temperature, velocity, etc.
         if self.norm_features:
             in_vars = (in_vars-self.norm_min) / (self.norm_max - self.norm_min)
         
@@ -150,47 +150,77 @@ class InvariantDragMLP(nn.Module):
         return h2
     
 
+# if __name__ == "__main__":
+#     from datasets import DragMeshDataset
+#     from torch_geometric.data import DataLoader
+
+#     ds = DragMeshDataset("data/cube50k.dat", "STLs/Cube_38_1m.stl")
+#     dl = iter(DataLoader(ds, batch_size=1, shuffle=False))
+#     network = DragMeshNetwork("1x0e")
+#     data = next(dl)
+#     out = network(data)
+#     print(out)
+    
+#     rot_orientation = torch.tensor([0.1, 0.1])
+#     data_rot = ds._rotate(data, rot_orientation)
+#     print(network(data_rot))
+#     # model = TestVarToSphere()
+#     # test_inp = torch.rand((1, 2))
+#     # print(model(test_inp))
+#     # import matplotlib.pyplot as plt
+#     # from mpl_toolkits.mplot3d import Axes3D
+
+
+#     # create a 3d scatterplot
+    
+#     # points = []
+#     # start_sample = [1, 2, 3]
+#     # points.append(start_sample)
+#     # act = gspaces.GSpace3D((False, "so3",))
+#     # for elem in act.fibergroup.testing_elements():
+#     #     transformed = act.fibergroup.standard_representation()(elem)@start_sample
+#     #     points.append(transformed)
+
+#     # x, y, z = zip(*points)
+#     # print(len(points))
+
+#     # fig = plt.figure()
+#     # ax = fig.add_subplot(111, projection='3d')
+
+#     # ax.scatter(x, y, z)
+
+#     # ax.set_xlabel('X')
+#     # ax.set_ylabel('Y')
+#     # ax.set_zlabel('Z')
+    
+#     # plt.show()
+
 if __name__ == "__main__":
-    from datasets import DragMeshDataset
-    from torch_geometric.data import DataLoader
+    from copy import deepcopy
 
-    ds = DragMeshDataset("data/cube50k.dat", "STLs/Cube_38_1m.stl")
-    dl = iter(DataLoader(ds, batch_size=1, shuffle=False))
-    network = DragMeshNetwork("1x0e")
-    data = next(dl)
-    out = network(data)
-    print(out)
+    model = InvariantDragMLP(GSpaceInfo('c2c2c2'))
+
+    # Create a random input tensor
+    input_tensor = torch.rand((10, 8))
+
+    # Forward pass through the model
+    output1 = model(deepcopy(input_tensor))
+
+    # Forward pass through the model again with the same input
+    output2 = model(deepcopy(input_tensor))
     
-    rot_orientation = torch.tensor([0.1, 0.1])
-    data_rot = ds._rotate(data, rot_orientation)
-    print(network(data_rot))
-    # model = TestVarToSphere()
-    # test_inp = torch.rand((1, 2))
-    # print(model(test_inp))
-    # import matplotlib.pyplot as plt
-    # from mpl_toolkits.mplot3d import Axes3D
+    input_tensor[0, 0] += 0.00000001
 
+    # Forward pass through the model with the modified input
+    output3 = model(deepcopy(input_tensor))
 
-    # create a 3d scatterplot
-    
-    # points = []
-    # start_sample = [1, 2, 3]
-    # points.append(start_sample)
-    # act = gspaces.GSpace3D((False, "so3",))
-    # for elem in act.fibergroup.testing_elements():
-    #     transformed = act.fibergroup.standard_representation()(elem)@start_sample
-    #     points.append(transformed)
+    # Check if the output is the same
+    print(torch.allclose(output1, output2))
+    print(torch.allclose(output1, output3))
+    print(torch.allclose(output2, output3))
+    print(output1)
+    print(output2)
+    print(output3)
+    print(output1 - output2)
+    print(output1 - output3)
 
-    # x, y, z = zip(*points)
-    # print(len(points))
-
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111, projection='3d')
-
-    # ax.scatter(x, y, z)
-
-    # ax.set_xlabel('X')
-    # ax.set_ylabel('Y')
-    # ax.set_zlabel('Z')
-    
-    # plt.show()

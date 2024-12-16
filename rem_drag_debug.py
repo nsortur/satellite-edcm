@@ -478,48 +478,68 @@ def test_simple_network() -> None:
     import matplotlib.pyplot as plt
     import plotly.graph_objects as go
     
-    # net = REM(num_node_features=5, z_lmax=4, max_radius=1.8, out_dim=1)
+    net = REM(num_node_features=5, z_lmax=4, max_radius=1.8, out_dim=1)
     
-    # # GRACE_A_tpmc
-    # ds = DragMeshDataset("data/cube50k.dat", "STLs/GRACE_A_tpmc.stl")
-    # dl = iter(DataLoader(ds, batch_size=1, shuffle=False))
-    # out = net(next(dl)[0])
+    # GRACE_A_tpmc
+    ds = DragMeshDataset("data/cube50k.dat", "STLs/Cube_38_1m.stl")
+    dl = iter(DataLoader(ds, batch_size=1, shuffle=False))
+    
     # aspects = torch.linspace(0, torch.pi, 360)
     # rolls = torch.zeros_like(aspects)
     # ar = torch.stack([aspects, rolls], -1)
     # print("ar", ar.shape)
     # los = ar2los(ar)
     # print("los", los.shape)
-    # print("out", out.shape)
 
-    # attitude_query = los[100:101, :]
+    # attitude_query = ar[100:101, :]
     # print(attitude_query.shape)
-    # res = net.getResponse(out, attitude_query)
+    # inp = next(dl)[0]
+    # inp.orientation = attitude_query
+    # res = net(inp)
     # print("res", res.item(), attitude_query)
-
+    
+    # # broken because need to convert to los then back to ar for input to rem
     # rot90_attitude_query = attitude_query @ o3.Irrep("1e").D_from_angles(torch.tensor(math.pi), tr.tensor(0), tr.tensor(0))
-    # res = net.getResponse(out, rot90_attitude_query)
+    # inp = next(dl)[0]
+    # inp.orientation = rot90_attitude_query
+    # res = net(inp)
     # print("res rot90", res.item(), rot90_attitude_query)
 
     # random_attitude_query = attitude_query @ o3.Irrep("1e").D_from_matrix(o3.rand_matrix())
-    # # print("Random attitude", random_attitude_query)
-    # res = net.getResponse(out, random_attitude_query)
+    # inp = next(dl)[0]
+    # inp.orientation = random_attitude_query
+    # res, out = net(inp, return_latent=True)
     # print("res random", res.item(), random_attitude_query)
 
-    # # irreps of spherical harmonics
-    # x = SphericalTensor(4, 1, -1)
-    # traces = x.plotly_surface(out.detach().squeeze())
-    # traces = [go.Surface(**d) for d in traces]
-    # fig = go.Figure(data=traces)
-    # fig.show()
 
-    ds = DragMeshDataset("data/cube50k.dat", "STLs/Cube_38_1m.stl")
-    dl = iter(DataLoader(ds, batch_size=1, shuffle=False))
-    network = REM(5, 4, 1.8, 1)
-    data = next(dl)
-    out = network(data[0])
-    print("Pred", out)
-    print("Target", data[1])
+
+    # visualize signal on the sphere
+    # irreps of spherical harmonics
+    inp = next(dl)[0]
+    res, out = net(inp, return_latent=True)
+    x = SphericalTensor(4, 1, -1)
+    traces = x.plotly_surface(out.detach().squeeze())
+    traces = [go.Surface(**d) for d in traces]
+    fig = go.Figure(data=traces)
+    fig.update_layout(
+    showlegend=False,
+    scene=dict(
+        xaxis=dict(visible=False),
+        yaxis=dict(visible=False),
+        zaxis=dict(visible=False)
+    )
+    )
+    fig.show()
+
+
+    # test REM forward pass
+    # ds = DragMeshDataset("data/cube50k.dat", "STLs/Cube_38_1m.stl")
+    # dl = iter(DataLoader(ds, batch_size=1, shuffle=False))
+    # network = REM(5, 4, 1.8, 1)
+    # data = next(dl)
+    # out = network(data[0])
+    # print("Pred", out)
+    # print("Target", data[1])
 
 if __name__ == "__main__":
     test_simple_network()

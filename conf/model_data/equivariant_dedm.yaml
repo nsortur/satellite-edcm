@@ -1,0 +1,20 @@
+dataset:
+  _target_: datasets.DragMeshDataset
+  attr_file: ${stl_data.file_name}
+  mesh_file: ${stl_data.mesh_file}
+  norm_features: ${stl_data.norm_features}
+  data_lim: -1
+
+model:
+  _target_: dedm.SimpleNetwork
+  irreps_in: 5x0e
+  encoder_layers: 2
+  decoder_layers: 2
+  decoder_layer_hiddens: [64, 128]
+  max_radius: 1.7
+  num_neighbors: 3.0
+  num_nodes: 5.0
+  f_out: 16
+  lmax: 3
+  rotate: "query"
+

@@ -13,6 +13,8 @@ from .equiv_gnn import GNN
 from .equiv_gnn_w_attrs import AttrGNN
 
 
+# TODO try getting rid of nonlinearities and see what happens
+
 class Decoder(nn.Module):
   def __init__(self, lmax_in, lmax_out, f_in, f_out, invariant_out=False):
     super().__init__()
@@ -98,6 +100,13 @@ class REM(nn.Module):
         lmax=[self.lmax, self.lmax, self.lmax],
       )
 
+    # TODO figure out what this linear layer actually is
+    # remove nonlinearities (could be an error) then VN could help
+    # equivariance error for encoder and decoder (on a layer by layer basis)
+    # overfit to a spherical signal in the decoder
+    # latent space
+    # TODO develop a baseline mesh to radar model and see what the error is
+    # resolution?
     self.lin = o3.Linear(self.irreps_enc_out, self.irreps_latent, f_in=1, f_out=f)
     self.decoder = Decoder(z_lmax, z_lmax, f, out_dim, invariant_out=invariant_out)
 

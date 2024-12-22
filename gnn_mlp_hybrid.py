@@ -30,6 +30,12 @@ class GNN_MLP_Hybrid(tr.nn.Module):
         B = inp_graph.batch.max() + 1
         feats = inp_graph.feats
         batch_size = inp_graph.batch.max() + 1
+
+        pos = inp_graph.pos
+        ip = o3.Irreps("1x1o")
+        rot = ip.D_from_angles(inp_graph.orientation[0, 0], inp_graph.orientation[0, 1], tr.tensor(0))
+        inp_graph.pos = pos @ rot.squeeze()
+
         gnn_out = self.encoder(inp_graph)
         z_gnn = self.lin(gnn_out.view(batch_size, 1, -1)) # B x 1 x f
         feats = feats.unsqueeze(0).reshape(B, self.num_inp_feats)
@@ -53,5 +59,4 @@ if __name__ == "__main__":
     dl = iter(DataLoader(ds, batch_size=1, shuffle=False))
     inp_graph, y = next(dl)
     out = net(inp_graph)
-    print(out.shape)
     print(out)

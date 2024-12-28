@@ -3,5 +3,8 @@ outputs/
 .DS_Store
 multirun/
 STLs
+2024*
+model_weights/
+*.png
 
 __pycache__/

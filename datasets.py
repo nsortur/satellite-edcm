@@ -7,6 +7,7 @@ from hydra import utils
 import trimesh
 from torch_geometric.data import Data
 from e3nn import o3
+import torch_geometric.transforms as T
 
 class DragDataset(torch.utils.data.Dataset):
     def __init__(self, file_name, norm_features, DEVICE='cpu'):
@@ -43,13 +44,15 @@ class DragDataset(torch.utils.data.Dataset):
 
 # we are just overfitting to one mesh for now because of lack of mesh variety (but still equivariant)
 class DragMeshDataset(torch.utils.data.Dataset):
-    def __init__(self, attr_file, mesh_file, norm_features=True, DEVICE='cpu', data_lim=-1, return_features_separately=False):
+    def __init__(self, attr_file, mesh_file, norm_features=True, DEVICE='cpu', data_lim=-1, 
+                 return_features_separately=False, orientation_features=False, transform=None):
         super().__init__()
         self.device = DEVICE
         mesh = trimesh.load(mesh_file, file_type="stl", force="mesh")
         self.vertices_canonical = torch.tensor(mesh.vertices, dtype=torch.get_default_dtype()).to(DEVICE)
         self.edges = torch.tensor(mesh.edges_unique).to(DEVICE)
         self.return_features_separately = return_features_separately
+        self.orientation_features = orientation_features
 
         df = pd.read_csv(utils.to_absolute_path(attr_file), delim_whitespace=True, header=None)
         df = df[:-1]
@@ -65,6 +68,17 @@ class DragMeshDataset(torch.utils.data.Dataset):
         # needs to be CPU for D_from_angles
         self.orientation = torch.tensor(df.iloc[:, 5:7].values, dtype=torch.float32).to(DEVICE)
         self.y = torch.tensor(df.iloc[:, 7].values, dtype=torch.float32).to(DEVICE)
+        
+        self.transform = transform
+        if transform == "gdc_transform":
+            self.transform = T.GDC(
+                self_loop_weight=1,
+                normalization_in='sym',
+                normalization_out='col',
+                diffusion_kwargs=dict(method='ppr', alpha=0.05),
+                sparsification_kwargs=dict(method='topk', k=128, dim=0),
+                exact=True,
+            )
 
     
     def __len__(self):
@@ -74,22 +88,37 @@ class DragMeshDataset(torch.utils.data.Dataset):
         # calculate edge_vec
         edge_vec = self.vertices_canonical[self.edges[:, 1]] - self.vertices_canonical[self.edges[:, 0]]
         if self.return_features_separately:
-            return Data(
+            data = Data(
                 pos=self.vertices_canonical,
                 x=torch.ones_like(self.xs[idx]).repeat(self.vertices_canonical.size(0), 1),
                 edge_index=self.edges.T,
                 edge_vec=edge_vec,
                 orientation=self.orientation[idx].unsqueeze(0),
                 feats=self.xs[idx]
-            ), self.y[idx]
+            )
+            y = self.y[idx]
+        elif self.orientation_features:
+            data = Data(
+                pos=self.vertices_canonical,
+                x=torch.cat((self.xs[idx].repeat(self.vertices_canonical.size(0), 1), self.orientation[idx].repeat(self.vertices_canonical.size(0), 1)), dim=1),
+                edge_index=self.edges.T,
+                edge_vec=edge_vec
+            )
+            y = self.y[idx]
         else:
-            return Data(
+            data = Data(
                 pos=self.vertices_canonical,
                 x=self.xs[idx].repeat(self.vertices_canonical.size(0), 1),
                 edge_index=self.edges.T,
                 edge_vec=edge_vec,
                 orientation=self.orientation[idx].unsqueeze(0),
-            ), self.y[idx]
+            )
+            y = self.y[idx]
+
+        if self.transform:
+            data = self.transform(data)
+        
+        return data, y
 
     def _rotate(self, data, orientation):
         vertices = data.pos
@@ -110,5 +139,5 @@ class DragMeshDataset(torch.utils.data.Dataset):
 
 if __name__ == "__main__":
     
-    ds = DragMeshDataset("data/cube50k.dat", "STLs/Cube_38_1m.stl")
+    ds = DragMeshDataset("data/cube50k.dat", "STLs/Cube_38_1m.stl", orientation_features=True)
     print(ds[2])

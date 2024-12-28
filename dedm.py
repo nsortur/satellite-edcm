@@ -297,7 +297,7 @@ if __name__ == "__main__":
     ds = DragMeshDataset("/Users/neelsortur/Documents/codestuff/sat-modeling/satellite-edcm/data/cube50k.dat", 
                      "/Users/neelsortur/Documents/codestuff/sat-modeling/satellite-edcm/STLs/Cube_38_1m.stl", 
                      return_features_separately=False)
-    dl = iter(DataLoader(ds, batch_size=16, shuffle=False))
+    dl = iter(DataLoader(ds, batch_size=1, shuffle=False))
     
     irreps_in = "5x0e"
     lmax = 2
@@ -305,7 +305,9 @@ if __name__ == "__main__":
 
     net = SimpleNetwork(irreps_in, encoder_layers=2, decoder_layers=2, decoder_layer_hiddens=[64, 128], max_radius=1.7, num_neighbors=3.0, num_nodes=5.0, 
                         f_out=f_out, lmax=lmax, rotate="query").eval()
+    print(net.mp.irreps_node_sequence)
     samp, y = next(dl)
+    print(samp)
     samp_copy = samp.clone()
     
     # equivariance error

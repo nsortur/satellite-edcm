@@ -34,7 +34,7 @@ def train(cfg: DictConfig):
     train_set, test_set = split_numsamples(dataset, cfg.stl_data.num_train, cfg.stl_data.num_test)
 
     # workaround for no hydra partial instantiation
-    if model.lmax is not None:
+    if hasattr(model, 'lmax') or 'GCN' in cfg.model_data.model._target_:
         loader = GeometricDataLoader
     else:
         loader = DataLoader
@@ -54,7 +54,6 @@ def train(cfg: DictConfig):
             inputs, labels = data
             
             optim.zero_grad()
-            
             outputs = model(inputs).squeeze()
             
             loss = loss_fn(outputs, labels)

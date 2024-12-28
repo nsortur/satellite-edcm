@@ -1,0 +1,16 @@
+dataset:
+  _target_: datasets.DragMeshDataset
+  attr_file: ${stl_data.file_name}
+  mesh_file: ${stl_data.mesh_file}
+  norm_features: ${stl_data.norm_features}
+  data_lim: -1
+  orientation_features: True
+  transform: gdc_transform
+
+model:
+  _target_: gcn.GCN
+  in_channels: 7
+  hidden_channels_list: [64, 64, 64, 64]
+  out_channels: 1
+  use_gdc: True
+

@@ -106,7 +106,9 @@ class GraphConv(nn.Module):
 class InvariantDragMLP(nn.Module):
     def __init__(self, gspaceinfo: GSpaceInfo, hidden_dim=128, norm_features=False, norm_min=None, norm_max=None):
         act = gspaceinfo.group
+        self.act = act
         input_reps = gspaceinfo.input_reps
+        self.input_reps = input_reps
 
         super().__init__()
         self.hidden_dim = hidden_dim

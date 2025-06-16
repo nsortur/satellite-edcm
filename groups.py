@@ -23,6 +23,7 @@ class GSpaceInfo():
             self.group = escnn.group.cyclic_group(4)
             raise NotImplementedError()
         elif group_act == 'oh':
-            raise NotImplementedError()
+            self.group = gspaces.no_base_space(escnn.group.octa_group())
+            self.input_reps = 1*[self.group.fibergroup.standard_representation]
         else:
             raise NotImplementedError(f"Group {group_act} not found")

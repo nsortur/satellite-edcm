@@ -26,8 +26,8 @@ class DragDataset(torch.utils.data.Dataset):
         dir_vec = []
         for yaw_pitch in orientation:
             dir_x = math.cos(yaw_pitch[0]) * math.cos(yaw_pitch[1])
-            dir_y = math.sin(yaw_pitch[1])
-            dir_z = math.sin(yaw_pitch[0]) * math.cos(yaw_pitch[1])
+            dir_y = math.sin(yaw_pitch[0]) * math.cos(yaw_pitch[1])
+            dir_z = math.sin(yaw_pitch[1])
             dir_vec.append([dir_y, dir_x, dir_z])
         
         cat = np.concatenate((np.array(dir_vec), in_vars), axis=1)

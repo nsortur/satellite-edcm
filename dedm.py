@@ -155,12 +155,14 @@ class SimpleNetwork(torch.nn.Module):
             enc_out = scatter(node_outputs, batch, int(batch.max()) + 1).div(self.num_nodes**0.5)
         else:
             enc_out = node_outputs
-                
+
         enc_out = self.enc_to_so3(enc_out.view(batch_size, 1, -1))
+        
         for layer in self.decoder_layers_list:
             enc_out = layer(enc_out)
         
         enc_out = self.lin(enc_out)
+        print(enc_out)
 
         if self.rotate == "query":    
             cartesian = self._ar2los(data.orientation)
@@ -300,20 +302,25 @@ if __name__ == "__main__":
     dl = iter(DataLoader(ds, batch_size=1, shuffle=False))
     
     irreps_in = "5x0e"
-    lmax = 2
+    lmax = 3
     f_out = 2
 
-    net = SimpleNetwork(irreps_in, encoder_layers=2, decoder_layers=2, decoder_layer_hiddens=[64, 128], max_radius=1.7, num_neighbors=3.0, num_nodes=5.0, 
-                        f_out=f_out, lmax=lmax, rotate="query").eval()
+    net = SimpleNetwork(irreps_in, encoder_layers=1, decoder_layers=1, decoder_layer_hiddens=[64], max_radius=1.7, num_neighbors=3.0, num_nodes=5.0, 
+                        f_out=f_out, lmax=lmax, rotate="pos").eval()
     print(net.mp.irreps_node_sequence)
+    print(net.irreps_latent)
+    print(net.irreps_out)
+    print()
+    
     samp, y = next(dl)
-    print(samp)
+    
     samp_copy = samp.clone()
     
     # equivariance error
     cd = net(samp)
     print(cd)
-
+    exit(0)
+    
     orientations = [
         torch.tensor([[0.0, 0.0]]),
         torch.tensor([[torch.pi / 2, 0.0]]),

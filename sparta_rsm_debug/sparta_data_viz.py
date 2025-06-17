@@ -3,6 +3,7 @@ import re
 import argparse
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 
 def extract_cd(file_content):
     for line in file_content.splitlines():
@@ -88,6 +89,7 @@ def plot_orientations_3d(species="N2", blocks_to_use=None, plotmode="sparta"):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         sc = ax.scatter(xs, ys, zs, c=cds, cmap='viridis',  marker='o', s=60)
+        print(np.std(cds))
         ax.set_title(f'{species} Orientation Vectors Colored by CD Value (sparta)')
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
@@ -158,6 +160,7 @@ def plot_orientations_3d(species="N2", blocks_to_use=None, plotmode="sparta"):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         sc = ax.scatter(xs, ys, zs, c=cds, cmap='coolwarm', marker='o', s=60)
+        print(np.std(cds))
         ax.set_title(f'{species} Orientation Vectors Colored by CD Value (rsm)')
         ax.set_xlabel('X')
         ax.set_ylabel('Y')

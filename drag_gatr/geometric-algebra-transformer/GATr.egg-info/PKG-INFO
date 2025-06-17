@@ -1,0 +1,27 @@
+Metadata-Version: 2.4
+Name: GATr
+Version: 1.4.2
+Summary: The Geometric Algebra Transformer, a universal neural network architecture for geometric data
+Home-page: https://github.com/Qualcomm-AI-research/geometric-algebra-transformer
+Author: Johann Brehmer, Pim de Haan, Sönke Behrends, and Taco Cohen
+Author-email: jbrehmer@qti.qualcomm.com
+Maintainer: Johann Brehmer
+Maintainer-email: jbrehmer@qti.qualcomm.com
+License: See notice in license file
+Requires-Python: >=3.8
+License-File: LICENSE
+Requires-Dist: einops
+Requires-Dist: numpy<1.25
+Requires-Dist: opt_einsum@ git+https://github.com/dgasmith/opt_einsum.git@1a984b7b75f3e532e7129f6aa13f7ddc3da66e10
+Requires-Dist: torch>=2.0
+Requires-Dist: xformers
+Dynamic: author
+Dynamic: author-email
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: maintainer
+Dynamic: maintainer-email
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

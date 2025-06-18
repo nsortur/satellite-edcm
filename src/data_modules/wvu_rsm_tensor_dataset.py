@@ -77,6 +77,13 @@ class WVURSMDataModule(pl.LightningDataModule):
         df = pd.read_csv(
             utils.to_absolute_path(self.hparams.data_dir), sep="\s+", header=None
         )
+        train_df, val_df, test_df = self._train_test_split(df)
+
+        self.data_train = DragDataset(train_df, self.feature_min, self.feature_max)
+        self.data_val = DragDataset(val_df, self.feature_min, self.feature_max)
+        self.data_test = DragDataset(test_df, self.feature_min, self.feature_max)
+
+    def _train_test_split(self, df: pd.DataFrame):
         df = df.iloc[:-1].reset_index(drop=True)
 
         # Split the DataFrame indices first
@@ -96,9 +103,7 @@ class WVURSMDataModule(pl.LightningDataModule):
                 self.feature_min = train_in_vars_df.min(axis=0).values
                 self.feature_max = train_in_vars_df.max(axis=0).values
 
-        self.data_train = DragDataset(train_df, self.feature_min, self.feature_max)
-        self.data_val = DragDataset(val_df, self.feature_min, self.feature_max)
-        self.data_test = DragDataset(test_df, self.feature_min, self.feature_max)
+        return train_df, val_df, test_df
 
     def train_dataloader(self):
         return DataLoader(
@@ -147,6 +152,7 @@ if __name__ == "__main__":
     dm.setup()
 
     print(f"Size of train set: {len(dm.data_train)}")
+    print(f"Size of val set: {len(dm.data_val)}")
     print(f"Size of test set: {len(dm.data_test)}")
 
     # Check a batch from the train loader

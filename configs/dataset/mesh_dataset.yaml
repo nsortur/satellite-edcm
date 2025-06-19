@@ -2,7 +2,7 @@
 
 _target_: src.data_modules.wvu_rsm_mesh_dataset.DragMeshDataModule
 
-attr_file: "data/cube50k_mesh.dat"
+data_dir: "data/cube50k_mesh.dat"
 mesh_dir: "data/STLs"
 train_val_test_split: [40000, 5000, 4999]
 batch_size: 8

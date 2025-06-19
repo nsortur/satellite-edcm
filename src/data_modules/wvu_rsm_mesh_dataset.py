@@ -6,7 +6,7 @@ import trimesh
 from torch_geometric.data import Data
 from e3nn import o3
 import torch_geometric.transforms as T
-from wvu_rsm_tensor_dataset import DragDataset, WVURSMDataModule
+from src.data_modules.wvu_rsm_tensor_dataset import DragDataset, WVURSMDataModule
 import os
 from torch_geometric.data import Batch
 import pytorch_lightning as pl
@@ -14,9 +14,7 @@ from torch_geometric.loader import DataLoader as GeometricDataLoader
 
 
 class DragMeshDataset(DragDataset):
-    def __init__(
-        self, df, feature_min=None, feature_max=None, mesh_dir=""
-    ):
+    def __init__(self, df, feature_min=None, feature_max=None, mesh_dir=""):
         super().__init__(df, feature_min, feature_max)
         self.mesh_dir = mesh_dir
 
@@ -57,7 +55,9 @@ class DragMeshDataset(DragDataset):
             )
 
         # Get orientation
-        orientation = torch.tensor(row.iloc[5:7].values.astype(np.float32), dtype=torch.float32)
+        orientation = torch.tensor(
+            row.iloc[5:7].values.astype(np.float32), dtype=torch.float32
+        )
 
         # Get mesh filename from the last column
         mesh_filename = row.iloc[-1]
@@ -149,6 +149,7 @@ class DragMeshDataModule(WVURSMDataModule):
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
             shuffle=True,
+            persistent_workers=True,
         )
 
     def val_dataloader(self):
@@ -157,7 +158,8 @@ class DragMeshDataModule(WVURSMDataModule):
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
-            shuffle=True,
+            shuffle=False,
+            persistent_workers=True,
         )
 
     def test_dataloader(self):
@@ -167,7 +169,9 @@ class DragMeshDataModule(WVURSMDataModule):
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
             shuffle=False,
+            persistent_workers=True,
         )
+
 
 if __name__ == "__main__":
     # Test the DataModule
@@ -184,6 +188,6 @@ if __name__ == "__main__":
     train_batch = next(iter(dm.train_dataloader()))
     x, y = train_batch
     print("\nTrain batch shapes:")
-    print(f"pos shape:: {x.pos.shape}") # [batch_size*nodes, 3]
+    print(f"pos shape:: {x.pos.shape}")  # [batch_size*nodes, 3]
     print(f"x shape: {x.x.shape}")  # Should be [batch_size*nodes, num_features]
     print(f"y shape: {y.shape}")  # Should be [batch_size, 1]

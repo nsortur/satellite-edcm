@@ -4,7 +4,7 @@ _target_: src.modules.cd_training_module.CDTrainingModule
 
 model_config:
   _target_: src.models.dedm_v2.DEDMV2
-  irreps_in: "5x0e"
+  irreps_node_in: "5x0e"
   lmax: 7
   max_radius: 5.0
   num_neighbors_avg: 5.0
@@ -16,7 +16,6 @@ optimizer_config:
   weight_decay: 0.0001
 
 lr_scheduler_config:
-  _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
   mode: "min"
   factor: 0.1
   patience: 10

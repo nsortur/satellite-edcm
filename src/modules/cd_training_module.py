@@ -5,6 +5,8 @@ import hydra
 import pytorch_lightning as pl
 import torch
 from torchmetrics import MeanSquaredError, MaxMetric
+from torch.optim import AdamW
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 class CDTrainingModule(pl.LightningModule):
@@ -76,7 +78,7 @@ class CDTrainingModule(pl.LightningModule):
         """
         Manually instantiates the optimizer and scheduler from the config dictionaries.
         """
-        optimizer = torch.optim.AdamW(
+        optimizer = AdamW(
             self.parameters(),
             lr=self.hparams.optimizer_config.lr,
             weight_decay=self.hparams.optimizer_config.weight_decay,
@@ -86,8 +88,11 @@ class CDTrainingModule(pl.LightningModule):
             return optimizer
 
         # Step 2: Manually instantiate the scheduler.
-        scheduler = self._instantiate_from_config_dict(
-            self.hparams.lr_scheduler_config, optimizer=optimizer
+        scheduler = ReduceLROnPlateau(
+            mode=self.hparams.lr_scheduler_config.mode,
+            factor=self.hparams.lr_scheduler_config.factor,
+            patience=self.hparams.lr_scheduler_config.patience,
+            optimizer=optimizer,
         )
 
         return {

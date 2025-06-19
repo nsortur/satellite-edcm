@@ -1,0 +1,12 @@
+# configs/model/equi_mlp.yaml
+
+_target_: src.modules.cd_training_module.CDTrainingModule
+
+model_config:
+  _target_: src.models.equi_mlp.InvariantDragMLP # Assumed class name
+  gspaceinfo: ${syms}
+  hidden_dim: 256
+
+optimizer_config:
+  lr: 0.0001
+  weight_decay: 0

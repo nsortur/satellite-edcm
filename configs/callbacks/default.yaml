@@ -1,0 +1,5 @@
+# configs/callbacks/default.yaml
+
+# A list of callbacks
+defaults:
+  - model_checkpoint

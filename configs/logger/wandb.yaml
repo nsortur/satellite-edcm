@@ -1,0 +1,6 @@
+_target_: pytorch_lightning.loggers.WandbLogger
+
+project: "default-project-name" # Will be overridden by experiment
+name: ${now:%Y-%m-%d_%H-%M-%S}
+log_model: false
+offline: true

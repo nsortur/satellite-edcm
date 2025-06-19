@@ -1,5 +1,4 @@
 # Time-averaged data for fix 1
 # TimeStep c_total_drag_time[1] c_total_drag_time[2] c_total_drag_time[3]
-
-600000 -0.000355733 -5.77732e-05 5.51568e-05
-Cd = 1.9174
+600000 -0.000302682 -6.88777e-05 6.64618e-05
+CD = 1.943682713236977

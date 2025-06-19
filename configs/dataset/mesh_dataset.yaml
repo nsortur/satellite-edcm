@@ -1,0 +1,11 @@
+# configs/data/mesh_data.yaml
+
+_target_: src.data_modules.wvu_rsm_mesh_dataset.DragMeshDataModule
+
+attr_file: "data/cube50k_mesh.dat"
+mesh_dir: "data/STLs"
+train_val_test_split: [40000, 5000, 4999]
+batch_size: 8
+num_workers: 4
+pin_memory: false
+norm_features: true

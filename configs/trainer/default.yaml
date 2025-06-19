@@ -1,0 +1,6 @@
+_target_: pytorch_lightning.Trainer
+
+accelerator: "auto"
+devices: "auto"
+max_epochs: 100
+precision: 32

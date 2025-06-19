@@ -8,7 +8,7 @@ from e3nn.math import soft_one_hot_linspace
 from e3nn.nn import Gate
 from e3nn.util.jit import compile_mode
 
-from . import e3nn_utils
+from ..dedm import e3nn_utils
 
 class AttrGNN(torch.nn.Module):
   def __init__(

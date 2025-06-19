@@ -27,7 +27,7 @@ def print_orientations_with_cd(species="N2", blocks_to_use=None):
             continue
         orientation_lines = [line.strip() for line in block.splitlines() if line.strip()]
         for i, orientation in enumerate(orientation_lines, start=1):
-            file_name = f"drag_force_N2_{b}_{i}.txt"
+            file_name = f"drag_force_{species}_{b}_{i}.txt"
             file_path = os.path.join(results_dir, file_name)
             try:
                 with open(file_path, "r") as df:
@@ -38,10 +38,15 @@ def print_orientations_with_cd(species="N2", blocks_to_use=None):
             print(f"{orientation} -> CD: {cd_value}")
 
 def plot_orientations_3d(species="N2", blocks_to_use=None, plotmode="sparta"):
-    if plotmode == "sparta":
-        orientations_file = os.path.join("rsm_sparta_data", "orientations.txt")
-        results_dir = os.path.join("rsm_sparta_data", f"{species}_Results")
+    if plotmode == "sparta" or plotmode == "sparta-diffuse":
         
+        orientations_file = os.path.join("rsm_sparta_data", "orientations.txt")
+        if plotmode == "sparta":
+            title = f'{species} Orientation Vectors Colored by CD Value (sparta)'
+            results_dir = os.path.join("rsm_sparta_data", f"{species}_Results")
+        else:
+            title = f'{species} Orientation Vectors Colored by CD Value (sparta diffuse)'
+            results_dir = os.path.join("rsm_sparta_data", f"{species}_Results_diffuse")
         with open(orientations_file, "r") as f:
             content = f.read()
             
@@ -67,12 +72,13 @@ def plot_orientations_3d(species="N2", blocks_to_use=None, plotmode="sparta"):
                 else:
                     continue
 
-                file_name = f"drag_force_N2_{b}_{i}.txt"
+                file_name = f"drag_force_{species}_{b}_{i}.txt"
                 file_path = os.path.join(results_dir, file_name)
                 try:
                     with open(file_path, "r") as df:
                         file_data = df.read()
                         cd_value = extract_cd(file_data)
+                        
                 except FileNotFoundError:
                     continue
                 
@@ -86,11 +92,12 @@ def plot_orientations_3d(species="N2", blocks_to_use=None, plotmode="sparta"):
                 zs.append(z)
                 cds.append(cd_float)
 
+        print("CDs:", cds)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        sc = ax.scatter(xs, ys, zs, c=cds, cmap='viridis',  marker='o', s=60)
+        sc = ax.scatter(xs, ys, zs, c=cds, cmap='viridis',  marker='o', s=60, depthshade=False)
         print(np.std(cds))
-        ax.set_title(f'{species} Orientation Vectors Colored by CD Value (sparta)')
+        ax.set_title(title)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
@@ -98,7 +105,7 @@ def plot_orientations_3d(species="N2", blocks_to_use=None, plotmode="sparta"):
         ax.set_ylim([-1, 1])
         ax.set_zlim([-1, 1])
         plt.colorbar(sc, ax=ax, label='CD Value')
-        plt.show()
+        # plt.show()
     
     elif plotmode == "rsm":
         # RSM mode: each orientation vector from orientations.txt is paired with the corresponding line in rsm_n2_results.dat.
@@ -156,10 +163,11 @@ def plot_orientations_3d(species="N2", blocks_to_use=None, plotmode="sparta"):
                 ys.append(y)
                 zs.append(z)
                 cds.append(cd_value)
-        
+                
+        print("CDs:", cds)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        sc = ax.scatter(xs, ys, zs, c=cds, cmap='coolwarm', marker='o', s=60)
+        sc = ax.scatter(xs, ys, zs, c=cds, cmap='coolwarm', marker='o', s=60, depthshade=False)
         print(np.std(cds))
         ax.set_title(f'{species} Orientation Vectors Colored by CD Value (rsm)')
         ax.set_xlabel('X')
@@ -169,16 +177,16 @@ def plot_orientations_3d(species="N2", blocks_to_use=None, plotmode="sparta"):
         ax.set_ylim([-1, 1])
         ax.set_zlim([-1, 1])
         plt.colorbar(sc, ax=ax, label='CD Value')
-        plt.show()
+        # plt.show()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process orientation vectors and extract CD values.')
     parser.add_argument('--print', action='store_true', help='Print each orientation with its corresponding CD value')
     parser.add_argument('--plot', action='store_true', help='Plot each orientation endpoint in a 3D scatter plot, colored by CD value')
     parser.add_argument('--blocks', type=int, nargs='+', help='Specify block numbers to process (e.g., --blocks 1 2)')
-    parser.add_argument('--species', type=str, choices=['N2', 'O'], default='N2',
+    parser.add_argument('--species', type=str, default='N2',
                         help='Select species for the results directory (default: N2)')
-    parser.add_argument('--plotmode', type=str, choices=['sparta', 'rsm'], default='sparta',
+    parser.add_argument('--plotmode', type=str, default='sparta',
                         help='Select plot mode: "sparta" uses drag_force files, "rsm" uses rsm_n2_results.dat (default: sparta)')
     args = parser.parse_args()
     

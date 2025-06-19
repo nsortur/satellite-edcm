@@ -38,7 +38,7 @@ class DragDataset(torch.utils.data.Dataset):
         dir_vec = np.array([dir_y, dir_x, dir_z], dtype=np.float32)
         x_features = np.concatenate((dir_vec, in_vars))
         y_label = np.array(row.iloc[7], dtype=np.float32)
-        return torch.from_numpy(x_features), torch.from_numpy(y_label)
+        return torch.from_numpy(x_features).float(), torch.from_numpy(y_label)
 
 
 class WVURSMDataModule(pl.LightningDataModule):
@@ -112,6 +112,7 @@ class WVURSMDataModule(pl.LightningDataModule):
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
             shuffle=True,
+            persistent_workers=True
         )
 
     def val_dataloader(self):
@@ -120,7 +121,8 @@ class WVURSMDataModule(pl.LightningDataModule):
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
-            shuffle=True,
+            shuffle=False,
+            persistent_workers=True
         )
 
     def test_dataloader(self):
@@ -129,7 +131,7 @@ class WVURSMDataModule(pl.LightningDataModule):
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
-            shuffle=False,
+            shuffle=False
         )
 
     def state_dict(self):

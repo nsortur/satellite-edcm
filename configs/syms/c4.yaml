@@ -1,0 +1,2 @@
+_target_: src.models.equi_mlp.GSpaceInfo 
+group_act: "c4"

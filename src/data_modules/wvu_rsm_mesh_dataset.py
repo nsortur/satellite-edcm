@@ -15,11 +15,10 @@ from torch_geometric.loader import DataLoader as GeometricDataLoader
 
 class DragMeshDataset(DragDataset):
     def __init__(
-        self, df, feature_min=None, feature_max=None, mesh_dir="", device="cpu"
+        self, df, feature_min=None, feature_max=None, mesh_dir=""
     ):
         super().__init__(df, feature_min, feature_max)
         self.mesh_dir = mesh_dir
-        self.device = device
 
         self.mesh_data = {}
         self._preload_meshes()
@@ -33,10 +32,8 @@ class DragMeshDataset(DragDataset):
             mesh_path = os.path.join(self.mesh_dir, filename)
             mesh = trimesh.load(mesh_path, file_type="stl", force="mesh")
 
-            vertices = torch.tensor(mesh.vertices, dtype=torch.get_default_dtype()).to(
-                self.device
-            )
-            edges = torch.tensor(mesh.edges_unique).to(self.device)
+            vertices = torch.tensor(mesh.vertices, dtype=torch.get_default_dtype())
+            edges = torch.tensor(mesh.edges_unique)
 
             # Calculate edge vectors
             edge_vec = vertices[edges[:, 1]] - vertices[edges[:, 0]]
@@ -60,9 +57,7 @@ class DragMeshDataset(DragDataset):
             )
 
         # Get orientation
-        orientation = torch.tensor(row.iloc[5:7].values.astype(np.float32), dtype=torch.float32).to(
-            self.device
-        )
+        orientation = torch.tensor(row.iloc[5:7].values.astype(np.float32), dtype=torch.float32)
 
         # Get mesh filename from the last column
         mesh_filename = row.iloc[-1]
@@ -71,7 +66,7 @@ class DragMeshDataset(DragDataset):
         mesh_data = self.mesh_data[mesh_filename]
 
         # Create feature tensor to repeat for each vertex
-        features = torch.tensor(in_vars, dtype=torch.float32).to(self.device)
+        features = torch.tensor(in_vars, dtype=torch.float32)
 
         # Create Data object
         data = Data(
@@ -83,7 +78,7 @@ class DragMeshDataset(DragDataset):
         )
 
         # Get the label
-        y = torch.tensor(row.iloc[7], dtype=torch.float32).to(self.device)
+        y = torch.tensor(row.iloc[7], dtype=torch.float32)
 
         return data, y
 
@@ -107,7 +102,6 @@ class DragMeshDataModule(WVURSMDataModule):
         num_workers: int = 0,
         pin_memory: bool = False,
         norm_features: bool = True,
-        device: str = "cpu",
     ):
         super().__init__(
             data_dir=data_dir,
@@ -119,7 +113,6 @@ class DragMeshDataModule(WVURSMDataModule):
         )
         # Add mesh-specific parameters
         self.hparams.mesh_dir = mesh_dir
-        self.hparams.device = device
 
     def setup(self, stage: str = None):
         if self.data_train:
@@ -135,21 +128,18 @@ class DragMeshDataModule(WVURSMDataModule):
             self.feature_min,
             self.feature_max,
             mesh_dir=self.hparams.mesh_dir,
-            device=self.hparams.device,
         )
         self.data_val = DragMeshDataset(
             val_df,
             self.feature_min,
             self.feature_max,
             mesh_dir=self.hparams.mesh_dir,
-            device=self.hparams.device,
         )
         self.data_test = DragMeshDataset(
             test_df,
             self.feature_min,
             self.feature_max,
             mesh_dir=self.hparams.mesh_dir,
-            device=self.hparams.device,
         )
 
     def train_dataloader(self):

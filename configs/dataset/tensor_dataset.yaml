@@ -1,0 +1,10 @@
+# configs/data/tensor_data.yaml
+
+_target_: src.data_modules.wvu_rsm_tensor_dataset.WVURSMDataModule 
+
+data_dir: "data/cube50k.dat"
+train_val_test_split: [40000, 5000, 4999]
+batch_size: 64
+num_workers: 4
+pin_memory: False
+norm_features: true

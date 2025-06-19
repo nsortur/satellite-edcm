@@ -1,0 +1,21 @@
+_target_: pytorch_lightning.callbacks.ModelCheckpoint
+
+# The pattern for the checkpoint filename.
+# It will save files like "epoch=10-val_rmse=0.1234.ckpt"
+filename: "{epoch:02d}-{val/rmse:.4f}"
+auto_insert_metric_name: false # needed because of slash in val rmse
+
+# The metric to monitor. Lower is better for RMSE.
+monitor: "val/rmse"
+
+# The mode should be "min" because a lower RMSE is better.
+# If you were monitoring accuracy, it would be "max".
+mode: "min"
+
+# Save the top 3 best checkpoints based on 'val/rmse'.
+# Set to 1 if you only want the single best model.
+save_top_k: 3
+
+# Always save a checkpoint at the end of the last epoch.
+# This creates a 'last.ckpt' file, which is crucial for resuming training.
+save_last: true

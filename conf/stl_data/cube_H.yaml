@@ -1,4 +1,0 @@
-file_name: "/Users/neelsortur/Documents/codestuff/sat-modeling/satellite-edcm/data/cube50k.dat"
-norm_features: true
-num_train: 40000
-num_test: 9999

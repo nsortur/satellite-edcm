@@ -1,4 +1,0 @@
-file_name: data/grace-512.dat
-norm_features: true
-num_train: 400
-num_test: 100

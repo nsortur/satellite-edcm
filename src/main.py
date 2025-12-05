@@ -94,12 +94,9 @@ def main(cfg: DictConfig) -> float:
     print("--> Starting Training!")
     trainer.fit(model=model, datamodule=datamodule)
 
-    # 8. (Optional) Test the model after training
-    # The 'ckpt_path="best"' command tells Lightning to automatically load the
-    # best checkpoint saved by the ModelCheckpoint callback.
     if cfg.get("test_after_fit"):
         print("--> Starting Testing!")
-        trainer.test(model=model, datamodule=datamodule, ckpt_path="best")
+        trainer.test(model=model, datamodule=datamodule, ckpt_path="last")
 
     # 9. Log the best score and finish
     best_score = trainer.checkpoint_callback.best_model_score

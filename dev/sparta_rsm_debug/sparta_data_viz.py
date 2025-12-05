@@ -105,7 +105,7 @@ def plot_orientations_3d(species="N2", blocks_to_use=None, plotmode="sparta"):
         ax.set_ylim([-1, 1])
         ax.set_zlim([-1, 1])
         plt.colorbar(sc, ax=ax, label='CD Value')
-        # plt.show()
+        plt.show()
     
     elif plotmode == "rsm":
         # RSM mode: each orientation vector from orientations.txt is paired with the corresponding line in rsm_n2_results.dat.
@@ -177,7 +177,7 @@ def plot_orientations_3d(species="N2", blocks_to_use=None, plotmode="sparta"):
         ax.set_ylim([-1, 1])
         ax.set_zlim([-1, 1])
         plt.colorbar(sc, ax=ax, label='CD Value')
-        # plt.show()
+        plt.show()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process orientation vectors and extract CD values.')

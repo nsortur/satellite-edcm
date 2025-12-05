@@ -14,8 +14,6 @@ mode: "min"
 
 # Save the top 3 best checkpoints based on 'val/rmse'.
 # Set to 1 if you only want the single best model.
-save_top_k: 3
+save_top_k: 2
 
-# Always save a checkpoint at the end of the last epoch.
-# This creates a 'last.ckpt' file, which is crucial for resuming training.
 save_last: true

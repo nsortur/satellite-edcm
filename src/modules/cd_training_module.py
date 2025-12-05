@@ -39,9 +39,14 @@ class CDTrainingModule(pl.LightningModule):
         return self.net(x)
 
     def _shared_step(self, batch: Any):
-        x, y = batch
-        # Ensure preds and y are the same shape for loss calculation
-        preds = self(x).squeeze()
+        if len(batch) == 3:
+            x, geo_x, y = batch
+            preds = self((x, geo_x)).squeeze()
+        else:
+            x, y = batch
+            # Ensure preds and y are the same shape for loss calculation
+            preds = self(x).squeeze()
+            
         y = y.squeeze()
         loss = self.loss_fn(preds, y)
         return loss, preds, y

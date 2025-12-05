@@ -3,7 +3,7 @@
 _target_: src.modules.cd_training_module.CDTrainingModule
 
 model_config:
-  _target_: src.models.equi_mlp.InvariantDragMLP
+  _target_: src.models.equi_mlp.InvariantDragMLPDRIA
   gspaceinfo: ${syms}
   hidden_dim: 256
 

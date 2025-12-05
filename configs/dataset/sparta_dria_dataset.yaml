@@ -1,0 +1,7 @@
+# configs/dataset/sparta_dria_dataset.yaml
+
+_target_: src.data_modules.sparta_dria_tensor_dataset.SpartaDRIADragDataModule
+
+data_dir: "data/sparta_dria_h_1123_splits"
+batch_size: 64
+num_workers: 4

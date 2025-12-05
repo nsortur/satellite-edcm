@@ -112,3 +112,31 @@ class InvariantDragMLP(nn.Module):
         h2 = self.network2(cat)
 
         return h2
+
+
+class InvariantDragMLPDRIA(InvariantDragMLP):
+    def __init__(
+        self,
+        gspaceinfo: GSpaceInfo,
+        hidden_dim=128,
+        norm_features=False,
+        norm_min=None,
+        norm_max=None,
+    ):
+        super().__init__(
+            gspaceinfo,
+            hidden_dim=hidden_dim,
+            norm_features=norm_features,
+            norm_min=norm_min,
+            norm_max=norm_max,
+        )
+
+    def forward(self, x):
+        
+        in_vars, dir_vec = x
+        geo_x = self.network.in_type(dir_vec)
+        h = self.network(geo_x).tensor.reshape(in_vars.shape[0], self.hidden_dim)
+        cat = torch.cat((h, in_vars), axis=1)
+        h2 = self.network2(cat)
+
+        return h2

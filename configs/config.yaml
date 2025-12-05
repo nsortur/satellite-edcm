@@ -5,10 +5,9 @@ defaults:
   - model: ???
   - dataset: ???
   - syms: c2c2c2 
-  # - logger: wandb     # Optional, defaulting to WandB
-  - callbacks: model_checkpoint
+  - callbacks: model_checkpoint_best
   - _self_           # Allows values in this file to be used
 
 # Global parameters
 seed: 42
-test_after_fit: false
+test_after_fit: true

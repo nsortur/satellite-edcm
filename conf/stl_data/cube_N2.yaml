@@ -1,4 +1,5 @@
-file_name: "/home/sortur.n/rsm_tool_suite-master/Outputs/RSM_Regression_Models/data/Training Set/cube0_ascii.stl_N2_training_set.dat"
+file_name: "/home/sortur.n/satellite-edcm/data/cube0_ascii.stl_N2_training_set.dat"
+mesh_file: /home/sortur.n/satellite-edcm/STLs/Cube_38_1m.stl
 norm_features: true
 num_train: 40000
 num_test: 9999

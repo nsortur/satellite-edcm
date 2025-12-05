@@ -33,6 +33,8 @@ def train(cfg: DictConfig):
     dataset = instantiate(cfg.model_data.dataset, DEVICE=device)
     train_set, test_set = split_numsamples(dataset, cfg.stl_data.num_train, cfg.stl_data.num_test)
 
+    print(f'Trainable params: {sum(p.numel() for p in model.parameters() if p.requires_grad)}')
+
     # workaround for no hydra partial instantiation
     if hasattr(model, 'lmax') or 'GCN' in cfg.model_data.model._target_:
         loader = GeometricDataLoader
@@ -48,9 +50,10 @@ def train(cfg: DictConfig):
     test_losses = []
     for j in range(cfg.n_epochs):
         running_loss = 0
-        pbar = tqdm(enumerate(train_loader_yp), total=len(train_loader_yp))
-        pbar.set_description(f"loss: 0")
-        for i, data in pbar:
+#         pbar = tqdm(enumerate(train_loader_yp), total=len(train_loader_yp))
+#         pbar.set_description(f"loss: 0")
+#         for i, data in pbar:
+        for i, data in enumerate(train_loader_yp):
             inputs, labels = data
             
             optim.zero_grad()
@@ -58,7 +61,7 @@ def train(cfg: DictConfig):
             
             loss = loss_fn(outputs, labels)
             loss.backward()
-            pbar.set_description(f"loss: {format(loss.item(), '.5f')}")
+#             pbar.set_description(f"loss: {format(loss.item(), '.5f')}")
             optim.step()
             running_loss += loss.item()
 
@@ -79,7 +82,8 @@ def train(cfg: DictConfig):
         rmse_test = sqrt(running_test_loss / len(test_loader_yp_))
         running_loss_sample = sqrt(running_loss / len(train_loader_yp))
         if cfg.verbose:
-            print('Epoch {} loss: {}, test RMSE: {}'.format(j + 1, running_loss_sample, rmse_test))
+            if j == cfg.n_epochs - 1:
+                print('Epoch {} loss: {}, test RMSE: {}'.format(j + 1, running_loss_sample, rmse_test))
 
         losses.append(running_loss_sample)
         test_losses.append(rmse_test)

@@ -9,4 +9,4 @@
 
 # python train.py model_data=equivariant_dedm stl_data=cube_H n_epochs=25 weights.save_epoch_modulus=5 model_data.model.encoder_layers=3 model_data.model.lmax=3 model_data.model.decoder_layers=3 model_data.model.decoder_layer_hiddens="[64, 128, 256]"
 # python train.py model_data=equivariant_dedm stl_data=cube_H n_epochs=25 weights.save_epoch_modulus=5 model_data.model.encoder_layers=2 model_data.model.f_out=32
-python train.py --multirun model_data=equivariant_dedm stl_data=cube_H,cube_He,cube_N n_epochs=25 weights.save_epoch_modulus=5 model_data.model.rotate=pos
+python train.py --multirun model_data=gcn stl_data=cube_H,cube_He,cube_N,cube_N2,cube_O,cube_O2 n_epochs=25 weights.save_epoch_modulus=5 

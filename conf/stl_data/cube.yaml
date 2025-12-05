@@ -1,5 +1,5 @@
 file_name: /home/sortur.n/satellite-edcm/data/cube50k.dat
-mesh_file: /home/sortur.n/satellite-edcm/STLs/Cube_38_1m.stl
+mesh_file: /home/sortur.n/satellite-edcm/STLs/cube0_ascii.stl
 norm_features: true
 num_train: 45000
 num_test: 1000

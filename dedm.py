@@ -165,7 +165,7 @@ class SimpleNetwork(torch.nn.Module):
         if self.rotate == "query":    
             cartesian = self._ar2los(data.orientation)
         else:
-            cartesian = torch.tensor([[0., 0., 1]])
+            cartesian = torch.tensor([[0., 0., 1]], device=data.x.device).repeat(batch_size, 1)
         
         out_response = self._getResponse(enc_out, cartesian, batch_size)
         

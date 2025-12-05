@@ -33,8 +33,8 @@ class GNN_MLP_Hybrid(tr.nn.Module):
 
         pos = inp_graph.pos
         ip = o3.Irreps("1x1o")
-        rot = ip.D_from_angles(inp_graph.orientation[0, 0], inp_graph.orientation[0, 1], tr.tensor(0))
-        inp_graph.pos = pos @ rot.squeeze()
+        rot = ip.D_from_angles(inp_graph.orientation[0, 0].cpu(), inp_graph.orientation[0, 1].cpu(), tr.tensor(0))
+        inp_graph.pos = pos @ rot.squeeze().to(pos.device)
 
         gnn_out = self.encoder(inp_graph)
         z_gnn = self.lin(gnn_out.view(batch_size, 1, -1)) # B x 1 x f

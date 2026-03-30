@@ -135,7 +135,18 @@ class PreprocessedDragDataModule(pl.LightningDataModule):
             return
 
         print(f"Loading preprocessed dataset from {self.data_dir}...")
-        full_list = torch.load(self.data_dir, weights_only=False)
+        loaded = torch.load(self.data_dir, weights_only=False)
+        
+        # Support both raw list (original) and dict format (from filter_large_meshes.py)
+        if isinstance(loaded, dict) and "data_list" in loaded:
+            full_list = loaded["data_list"]
+            if "filter_metadata" in loaded:
+                meta = loaded["filter_metadata"]
+                print(f"  Filtered dataset: {meta['meshes_before']} -> {meta['meshes_after']} meshes, "
+                      f"{meta['samples_before']} -> {meta['samples_after']} samples")
+                print(f"  Removed mesh IDs: {meta['removed_mesh_ids']}")
+        else:
+            full_list = loaded
         
         # 1. Identify Unique Meshes
         unique_meshes = []

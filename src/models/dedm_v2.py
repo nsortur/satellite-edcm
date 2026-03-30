@@ -158,7 +158,7 @@ class DEDMV2(torch.nn.Module):
             res = checkpoint(
                 conv, 
                 h, edge_src, edge_dst, edge_attr, edge_len_emb, 
-                use_reentrant=True
+                use_reentrant=False
             )
             
             h = h + gate(res) 

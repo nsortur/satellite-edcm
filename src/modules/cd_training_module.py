@@ -62,7 +62,84 @@ class CDTrainingModule(pl.LightningModule):
         self.log(
             "train/rmse", self.train_rmse, on_step=True, on_epoch=True, prog_bar=False, batch_size=b_size
         )
+
+        # --- Diagnostic Logging (every N steps to reduce overhead) ---
+        _log_interval = 50
+        if self.global_step % _log_interval == 0:
+            with torch.no_grad():
+                # Prediction & Target Statistics
+                self.log("debug/pred_mean", preds.mean(), on_step=True, on_epoch=False)
+                self.log("debug/pred_std", preds.std(), on_step=True, on_epoch=False)
+                self.log("debug/pred_min", preds.min(), on_step=True, on_epoch=False)
+                self.log("debug/pred_max", preds.max(), on_step=True, on_epoch=False)
+                self.log("debug/target_mean", targets.mean(), on_step=True, on_epoch=False)
+                self.log("debug/target_std", targets.std(), on_step=True, on_epoch=False)
+                self.log("debug/target_min", targets.min(), on_step=True, on_epoch=False)
+                self.log("debug/target_max", targets.max(), on_step=True, on_epoch=False)
+
+                # Residual (pred - target) stats
+                residuals = preds - targets
+                self.log("debug/residual_mean", residuals.mean(), on_step=True, on_epoch=False)
+                self.log("debug/residual_std", residuals.std(), on_step=True, on_epoch=False)
+                self.log("debug/residual_absmax", residuals.abs().max(), on_step=True, on_epoch=False)
+
+                # Graph structure stats (if PyG batch)
+                if hasattr(batch, 'edge_index') and batch.edge_index is not None:
+                    num_edges = batch.edge_index.shape[1]
+                    num_nodes = batch.pos.shape[0] if hasattr(batch, 'pos') else batch.x.shape[0]
+                    self.log("debug/edges_per_node", float(num_edges) / max(num_nodes, 1), on_step=True, on_epoch=False)
+                    self.log("debug/num_nodes", float(num_nodes), on_step=True, on_epoch=False)
+                    self.log("debug/num_edges", float(num_edges), on_step=True, on_epoch=False)
+
         return loss
+
+    def on_before_optimizer_step(self, optimizer):
+        """Log gradient norms before the optimizer step — critical for diagnosing instability."""
+        _log_interval = 50
+        if self.global_step % _log_interval != 0:
+            return
+
+        # Total gradient norm across all parameters
+        total_norm = 0.0
+        layer_norms = {}
+        for name, param in self.net.named_parameters():
+            if param.grad is not None:
+                param_norm = param.grad.data.norm(2).item()
+                total_norm += param_norm ** 2
+
+                # Group by top-level module (e.g. 'embedding_layer', 'encoder.0', 'decoder')
+                group = name.split('.')[0]
+                if len(name.split('.')) > 1:
+                    group = '.'.join(name.split('.')[:2])
+                layer_norms[group] = layer_norms.get(group, 0.0) + param_norm ** 2
+
+        total_norm = total_norm ** 0.5
+        self.log("debug/grad_norm_total", total_norm, on_step=True, on_epoch=False)
+
+        # Per-layer-group gradient norms
+        for group, norm_sq in layer_norms.items():
+            self.log(f"debug_grads/{group}", norm_sq ** 0.5, on_step=True, on_epoch=False)
+
+        # Log if any grads are NaN or Inf
+        has_nan = any(torch.isnan(p.grad).any().item() for p in self.parameters() if p.grad is not None)
+        has_inf = any(torch.isinf(p.grad).any().item() for p in self.parameters() if p.grad is not None)
+        self.log("debug/grad_has_nan", float(has_nan), on_step=True, on_epoch=False)
+        self.log("debug/grad_has_inf", float(has_inf), on_step=True, on_epoch=False)
+
+    def on_train_epoch_start(self):
+        """Log weight norms at the start of each epoch."""
+        with torch.no_grad():
+            for name, param in self.net.named_parameters():
+                group = name.split('.')[0]
+                if len(name.split('.')) > 1:
+                    group = '.'.join(name.split('.')[:2])
+                self.log(f"debug_weights/{group}_norm", param.data.norm(2).item(), on_step=False, on_epoch=True)
+
+        # Log current learning rate
+        opt = self.optimizers()
+        if opt is not None:
+            current_lr = opt.param_groups[0]['lr']
+            self.log("debug/learning_rate", current_lr, on_step=False, on_epoch=True)
 
     def validation_step(self, batch: Any, batch_idx: int):
         loss, preds, targets = self._shared_step(batch)

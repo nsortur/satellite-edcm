@@ -4,15 +4,15 @@ _target_: src.modules.cd_training_module.CDTrainingModule
 
 model_config:
   _target_: src.models.dedm_v2.DEDMV2
-  irreps_node_in: "5x0e"
+  irreps_node_in: "8x0e"
   lmax: 3
   max_radius: 2.0
-  num_neighbors_avg: 5.0
+  num_neighbors_avg: 15.0
   hidden_mul: 64
   num_layers: 3
 
 optimizer_config:
-  lr: 0.0005
+  lr: 0.00001
   weight_decay: 0.0001
 
 lr_scheduler_config:

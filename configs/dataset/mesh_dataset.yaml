@@ -1,11 +1,6 @@
-# configs/data/mesh_data.yaml
-
-_target_: src.data_modules.wvu_rsm_mesh_dataset.DragMeshDataModule
-
-data_dir: "data/cube50k_mesh.dat"
-mesh_dir: "data/STLs"
-train_val_test_split: [40000, 5000, 4999]
-batch_size: 8
+_target_: src.data_modules.preprocessed_data_module.PreprocessedDragDataModule
+data_dir: "/projects/gllab/sortur.n/drag_dataset_84k.pt"
+batch_size: 2
 num_workers: 4
-pin_memory: false
+validation_meshes: [0, 1, 2, 3, 4]
 norm_features: true

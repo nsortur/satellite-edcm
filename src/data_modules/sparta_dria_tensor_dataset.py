@@ -1,5 +1,6 @@
 from typing import Any
 from pathlib import Path
+import hydra
 
 import pytorch_lightning as pl
 from torch.utils.data import Dataset
@@ -11,7 +12,8 @@ import os
 
 class SpartaDRIADragDataset(Dataset):
     def __init__(self, data_dir: Path, stage: str = None, norm_stats: dict = None):
-        self.data_dir = data_dir
+        self.data_dir = hydra.utils.to_absolute_path(data_dir)
+        #self.data_dir = data_dir
         self.stage = stage
         self.file_paths = []
         self.metadata = []

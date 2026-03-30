@@ -2,9 +2,28 @@ _target_: pytorch_lightning.Trainer
 
 accelerator: "auto"
 devices: "auto"
-max_epochs: 100
+max_epochs: 300
 precision: 32
+accumulate_grad_batches: ${accumulate_grad_batches}
+val_check_interval: 1500
+log_every_n_steps: 20
 
-# change after done debugging with small dataset
-check_val_every_n_epoch: 1
-log_every_n_steps: 1
+default_root_dir: " /projects/gllab/sortur.n/dedmv2_runs/"
+
+# 2. Define the checkpointing behavior
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    dirpath: "/projects/gllab/sortur.n/dedmv2_runs/checkpoints/${now:%Y-%m-%d_%H-%M-%S}/"
+    filename: "dedmv2-{epoch:02d}-{step}"
+    every_n_train_steps: 5000
+
+    # Optional but highly recommended settings:
+    save_top_k: -1      # -1 saves EVERY checkpoint. Change to 3 to only keep the 3 most recent and save disk space.
+    save_last: true     # Always saves a "last.ckpt" so you can easily resume training if it crashes.
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: "/projects/gllab/sortur.n/dedmv2_runs/"
+  name: "tensorboard_logs"
+  version: "${now:%Y-%m-%d_%H-%M-%S}"
+

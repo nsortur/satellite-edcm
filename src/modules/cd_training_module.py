@@ -43,28 +43,34 @@ class CDTrainingModule(pl.LightningModule):
             x, geo_x, y = batch
             preds = self((x, geo_x)).squeeze()
         else:
-            x, y = batch
+            targets = batch.y.squeeze()
+            preds = self(batch).squeeze()
+            # x, y = batch
             # Ensure preds and y are the same shape for loss calculation
-            preds = self(x).squeeze()
+            # preds = self(x).squeeze()
             
-        y = y.squeeze()
+        y = targets
         loss = self.loss_fn(preds, y)
         return loss, preds, y
 
     def training_step(self, batch: Any, batch_idx: int):
         loss, preds, targets = self._shared_step(batch)
+        b_size = batch.num_graphs if hasattr(batch, 'num_graphs') else batch[0].shape[0]
+
         self.train_rmse(preds, targets)
-        self.log("train/loss", loss, on_step=False, on_epoch=True, prog_bar=False)
+        self.log("train/loss", loss, on_step=True, on_epoch=True, prog_bar=True, batch_size=b_size)
         self.log(
-            "train/rmse", self.train_rmse, on_step=False, on_epoch=True, prog_bar=True
+            "train/rmse", self.train_rmse, on_step=True, on_epoch=True, prog_bar=False, batch_size=b_size
         )
         return loss
 
     def validation_step(self, batch: Any, batch_idx: int):
         loss, preds, targets = self._shared_step(batch)
+        b_size = batch.num_graphs if hasattr(batch, 'num_graphs') else batch[0].shape[0]
+
         self.val_rmse(preds, targets)
-        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=False)
-        self.log("val/rmse", self.val_rmse, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=b_size)
+        self.log("val/rmse", self.val_rmse, on_step=False, on_epoch=True, prog_bar=False, batch_size=b_size)
 
     def on_validation_epoch_end(self):
         rmse = self.val_rmse.compute()

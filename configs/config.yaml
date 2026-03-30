@@ -11,3 +11,4 @@ defaults:
 # Global parameters
 seed: 42
 test_after_fit: true
+accumulate_grad_batches: 4

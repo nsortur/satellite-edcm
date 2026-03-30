@@ -149,29 +149,39 @@ class PreprocessedDragDataModule(pl.LightningDataModule):
             full_list = loaded
         
         # 1. Identify Unique Meshes
-        unique_meshes = []
-        mesh_assignments = []
+        # Use original_mesh_id if present (from filter_large_meshes.py) to keep
+        # mesh IDs consistent across original and filtered datasets.
+        if hasattr(full_list[0], 'original_mesh_id'):
+            print("Using preserved original_mesh_id from filtered dataset...")
+            for data in full_list:
+                data.mesh_number = data.original_mesh_id
+            unique_ids = sorted(set(d.original_mesh_id for d in full_list))
+            print(f"\nFound {len(unique_ids)} unique meshes (IDs: {unique_ids})")
+        else:
+            unique_meshes = []
+            mesh_assignments = []
 
-        print("Identifying unique meshes to split datasets safely...")
-        for data in tqdm(full_list, desc="Scanning geometries"):
-            pos = data.pos
-            found_match = False
-            for mesh_idx, unique_pos in enumerate(unique_meshes):
-                if pos.shape == unique_pos.shape:
-                    if torch.allclose(pos, unique_pos, rtol=1e-5, atol=1e-8):
-                        mesh_assignments.append(mesh_idx)
-                        found_match = True
-                        break
-            
-            if not found_match:
-                unique_meshes.append(pos)
-                mesh_assignments.append(len(unique_meshes) - 1)
+            print("Identifying unique meshes to split datasets safely...")
+            for data in tqdm(full_list, desc="Scanning geometries"):
+                pos = data.pos
+                found_match = False
+                for mesh_idx, unique_pos in enumerate(unique_meshes):
+                    if pos.shape == unique_pos.shape:
+                        if torch.allclose(pos, unique_pos, rtol=1e-5, atol=1e-8):
+                            mesh_assignments.append(mesh_idx)
+                            found_match = True
+                            break
+                
+                if not found_match:
+                    unique_meshes.append(pos)
+                    mesh_assignments.append(len(unique_meshes) - 1)
 
-        # Attach mesh numbers to data
-        for i, data in enumerate(full_list):
-            data.mesh_number = mesh_assignments[i]
+            # Attach mesh numbers to data
+            for i, data in enumerate(full_list):
+                data.mesh_number = mesh_assignments[i]
 
-        print(f"\nFound {len(unique_meshes)} unique base meshes.")
+            print(f"\nFound {len(unique_meshes)} unique base meshes.")
+
         print(f"Assigning meshes {self.validation_meshes} to validation.")
 
         # 2. Split by user-specified MESH ID

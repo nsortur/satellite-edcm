@@ -1,7 +1,7 @@
 _target_: src.data_modules.preprocessed_data_module.PreprocessedDragDataModule
-data_dir: "/projects/gllab/sortur.n/drag_dataset_84k_meshes_25_to_10.pt"
-batch_size: 2
+data_dir: "/projects/gllab/sortur.n/drag_dataset_84k_meshes_28_to_19.pt"
+batch_size: 4
 max_nodes_per_batch: 4000
 num_workers: 4
-validation_meshes: [0, 1, 2, 3, 4]
+validation_meshes: [2, 3, 4]
 norm_features: true

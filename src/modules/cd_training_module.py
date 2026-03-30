@@ -63,41 +63,36 @@ class CDTrainingModule(pl.LightningModule):
             "train/rmse", self.train_rmse, on_step=True, on_epoch=True, prog_bar=False, batch_size=b_size
         )
 
-        # --- Diagnostic Logging (every N steps to reduce overhead) ---
-        _log_interval = 50
-        if self.global_step % _log_interval == 0:
-            with torch.no_grad():
-                # Prediction & Target Statistics
-                self.log("debug/pred_mean", preds.mean(), on_step=True, on_epoch=False)
-                self.log("debug/pred_std", preds.std(), on_step=True, on_epoch=False)
-                self.log("debug/pred_min", preds.min(), on_step=True, on_epoch=False)
-                self.log("debug/pred_max", preds.max(), on_step=True, on_epoch=False)
-                self.log("debug/target_mean", targets.mean(), on_step=True, on_epoch=False)
-                self.log("debug/target_std", targets.std(), on_step=True, on_epoch=False)
-                self.log("debug/target_min", targets.min(), on_step=True, on_epoch=False)
-                self.log("debug/target_max", targets.max(), on_step=True, on_epoch=False)
+        # --- Diagnostic Logging (throttled by trainer's log_every_n_steps) ---
+        with torch.no_grad():
+            # Prediction & Target Statistics
+            self.log("debug/pred_mean", preds.mean(), on_step=True, on_epoch=False)
+            self.log("debug/pred_std", preds.std(), on_step=True, on_epoch=False)
+            self.log("debug/pred_min", preds.min(), on_step=True, on_epoch=False)
+            self.log("debug/pred_max", preds.max(), on_step=True, on_epoch=False)
+            self.log("debug/target_mean", targets.mean(), on_step=True, on_epoch=False)
+            self.log("debug/target_std", targets.std(), on_step=True, on_epoch=False)
+            self.log("debug/target_min", targets.min(), on_step=True, on_epoch=False)
+            self.log("debug/target_max", targets.max(), on_step=True, on_epoch=False)
 
-                # Residual (pred - target) stats
-                residuals = preds - targets
-                self.log("debug/residual_mean", residuals.mean(), on_step=True, on_epoch=False)
-                self.log("debug/residual_std", residuals.std(), on_step=True, on_epoch=False)
-                self.log("debug/residual_absmax", residuals.abs().max(), on_step=True, on_epoch=False)
+            # Residual (pred - target) stats
+            residuals = preds - targets
+            self.log("debug/residual_mean", residuals.mean(), on_step=True, on_epoch=False)
+            self.log("debug/residual_std", residuals.std(), on_step=True, on_epoch=False)
+            self.log("debug/residual_absmax", residuals.abs().max(), on_step=True, on_epoch=False)
 
-                # Graph structure stats (if PyG batch)
-                if hasattr(batch, 'edge_index') and batch.edge_index is not None:
-                    num_edges = batch.edge_index.shape[1]
-                    num_nodes = batch.pos.shape[0] if hasattr(batch, 'pos') else batch.x.shape[0]
-                    self.log("debug/edges_per_node", float(num_edges) / max(num_nodes, 1), on_step=True, on_epoch=False)
-                    self.log("debug/num_nodes", float(num_nodes), on_step=True, on_epoch=False)
-                    self.log("debug/num_edges", float(num_edges), on_step=True, on_epoch=False)
+            # Graph structure stats (if PyG batch)
+            if hasattr(batch, 'edge_index') and batch.edge_index is not None:
+                num_edges = batch.edge_index.shape[1]
+                num_nodes = batch.pos.shape[0] if hasattr(batch, 'pos') else batch.x.shape[0]
+                self.log("debug/edges_per_node", float(num_edges) / max(num_nodes, 1), on_step=True, on_epoch=False)
+                self.log("debug/num_nodes", float(num_nodes), on_step=True, on_epoch=False)
+                self.log("debug/num_edges", float(num_edges), on_step=True, on_epoch=False)
 
         return loss
 
     def on_before_optimizer_step(self, optimizer):
         """Log gradient norms before the optimizer step — critical for diagnosing instability."""
-        _log_interval = 50
-        if self.global_step % _log_interval != 0:
-            return
 
         # Total gradient norm across all parameters
         total_norm = 0.0

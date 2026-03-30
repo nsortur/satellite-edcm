@@ -25,7 +25,7 @@ callbacks:
 
 logger:
   _target_: pytorch_lightning.loggers.TensorBoardLogger
-  save_dir: "/projects/gllab/sortur.n/dedmv2_runs/"
+  save_dir: "/home/sortur.n/satellite-edcm/dedmv2_logs"
   name: "tensorboard_logs"
   version: "${now:%Y-%m-%d_%H-%M-%S}"
   default_hp_metric: false
